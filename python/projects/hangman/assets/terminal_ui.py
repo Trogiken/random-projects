@@ -10,7 +10,12 @@ cwd = raw_cwd.replace("/", path_form)
 termcolor = cwd + "/assets/packages/termcolor"
 sys.path.insert(0, termcolor)
 
-from termcolor import colored, cprint
+
+try:
+    from termcolor import colored, cprint
+except ImportError as IE:
+    print(f"Module Load Error: {IE}")
+
 
 text = colored('Hello, World!', 'red', attrs=['reverse', 'blink'])
 print(text)
