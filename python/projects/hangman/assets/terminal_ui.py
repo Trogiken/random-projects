@@ -1,13 +1,14 @@
-"""
-REQUIREMENTS
-Store a modifiable list of words to be used
-Windows and Linux terminal compatibility
-Save Scores and Display before each game
+import sys
+import os
 
-RULES
-* A number of times a user can get the incorrect letter and display tries left
-* Display correct and incorrect letters separately
-"""
+if sys.platform == "win32":
+    path_form = "\\"
+else:
+    path_form = "/"
+raw_cwd = os.getcwd()
+cwd = raw_cwd.replace("/", path_form)
+termcolor = cwd + "/assets/packages/termcolor"
+sys.path.insert(0, termcolor)
 
 from termcolor import colored, cprint
 

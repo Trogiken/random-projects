@@ -1,7 +1,20 @@
 Simple non-ui Hangman Game
 Created by Noah Blaszak
 
+
+"""
+REQUIREMENTS
+Store a modifiable list of words to be used
+Windows and Linux terminal compatibility
+Save Scores and Display before each game
+
+RULES
+* A number of times a user can get the incorrect letter and display tries left
+* Display correct and incorrect letters separately
+"""
+
+
 Python Version 3.8+
 
 Required Packages:
-pip install termcolor
+termcolor (pip install termcolor)
