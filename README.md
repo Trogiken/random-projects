@@ -1,2 +1,2 @@
 # Random Projects
-Random programming projects
+Random Programming Projects
