@@ -1,19 +1,14 @@
-import sys
-import os
+import logging
 
-if sys.platform == "win32":
-    path_form = "\\"
-else:
-    path_form = "/"
-raw_cwd = os.getcwd()
-cwd = raw_cwd.replace("/", path_form)
-assets_dir = cwd + "/assets"
-sys.path.insert(0, assets_dir)
+logging.basicConfig(filename='log.log', level=logging.INFO,
+                    format='%(levelname)s:%(module)s:%(message)s')
+logging.info('Program Started')
 
 try:
-    import terminal_ui
+    import mod_terminalUI as cmdUI
 except ImportError as IE:
-    print(f"Module Load Error: {IE}")
+    logging.critical(f'Import Failure: {IE}')
+    exit()
 
 
 def main():

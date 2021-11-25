@@ -1,20 +1,21 @@
 import sys
 import os
+import logging
+import osInfo as oI
 
-if sys.platform == "win32":
-    path_form = "\\"
-else:
-    path_form = "/"
+logging.basicConfig(filename='log.log', level=logging.INFO,
+                    format='%(levelname)s:%(module)s:%(message)s')
+
 raw_cwd = os.getcwd()
-cwd = raw_cwd.replace("/", path_form)
-termcolor = cwd + "/assets/packages/termcolor"
+cwd = raw_cwd.replace("/", oI.path_form)
+termcolor = oI.termcolor
 sys.path.insert(0, termcolor)
-
 
 try:
     from termcolor import colored, cprint
 except ImportError as IE:
-    print(f"Module Load Error: {IE}")
+    logging.critical(f'Import Failure: {IE}')
+    exit()
 
 
 text = colored('Hello, World!', 'red', attrs=['reverse', 'blink'])
