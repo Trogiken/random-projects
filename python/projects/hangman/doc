@@ -4,3 +4,4 @@ Created by Noah Blaszak
 Python Version 3.8+
 
 Required Packages:
+pip install termcolor
