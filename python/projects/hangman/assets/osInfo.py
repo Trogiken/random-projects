@@ -18,4 +18,6 @@ cwd = raw_cwd.replace("/", path_form)
 
 # TODO FIX THIS
 termcolor = cwd + "/assets/packages/termcolor"
+termcolor = termcolor.replace("/", path_form)
 sys.path.insert(0, termcolor)
+# check if os.getcwd uses / or \ on windows

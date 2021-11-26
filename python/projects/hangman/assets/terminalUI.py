@@ -1,18 +1,10 @@
-import sys
-import os
 import logging
-import osInfo as oI
 
 logging.basicConfig(filename='log.log', level=logging.INFO,
                     format='%(levelname)s:%(module)s:%(message)s')
 
-raw_cwd = os.getcwd()
-cwd = raw_cwd.replace("/", oI.path_form)
-termcolor = oI.termcolor
-sys.path.insert(0, termcolor)
-
 try:
-    from termcolor import colored, cprint
+    from .sub_pkgs import colored, cprint
 except ImportError as IE:
     logging.critical(f'Import Failure: {IE}')
     exit()

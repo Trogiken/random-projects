@@ -5,14 +5,15 @@ logging.basicConfig(filename='log.log', level=logging.INFO,
 logging.info('Program Started')
 
 try:
-    import mod_terminalUI as cmdUI
+    from assets import print_red_on_cyan
 except ImportError as IE:
     logging.critical(f'Import Failure: {IE}')
     exit()
 
 
 def main():
-    pass
+    print("Blank Space NORM")
+    print_red_on_cyan("Green")
 
 
 if __name__ == '__main__':
