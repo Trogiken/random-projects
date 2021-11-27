@@ -5,7 +5,7 @@ used_words = []
 
 
 def get_word():
-    """Generate a random (non-repeating) word"""
+    """Generate a random non-repeating word"""
     while True:
         word = random_word()
         if word not in used_words:
