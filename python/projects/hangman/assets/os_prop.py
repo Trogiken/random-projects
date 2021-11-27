@@ -1,17 +1,21 @@
 import sys
 
 
-def get_os(x):
+def get_os(opt):
     if sys.platform == "win32":
         path_form = "\\"
         system = "Windows"
+        clear_form = "cls"
     else:
-        path_form = r"/"
+        path_form = "/"
         system = "Linux Based"
+        clear_form = "clear"
 
-    if x == 1:
+    if opt == 1:
         return path_form
-    elif x == 2:
+    elif opt == 2:
         return system
+    elif opt == 3:
+        return clear_form
     else:
         return None
