@@ -1,2 +1,2 @@
-from .terminalUI import *
-from .osInfo import *
+from .process_word import *
+from .os_prop import *
