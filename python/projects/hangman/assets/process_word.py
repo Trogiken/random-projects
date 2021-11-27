@@ -1,6 +1,6 @@
 import os
 import random
-from .os_prop import *
+from .os_info import *
 
 
 def fetch_words():

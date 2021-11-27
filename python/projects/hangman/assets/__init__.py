@@ -1,2 +1,2 @@
 from .process_word import *
-from .os_prop import *
+from .os_info import *
