@@ -1,4 +1,4 @@
-Simple non-ui Hangman Game
+Simple Hangman Game
 Created by Noah Blaszak
 
 
@@ -17,7 +17,6 @@ RULES
 Python Version 3.8+
 
 Required Packages:
-termcolor (pip install termcolor)
 
 
 ############
