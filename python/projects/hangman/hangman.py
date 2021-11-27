@@ -18,9 +18,11 @@ def get_word():
         else:
             continue
 
+    return word
+
 
 def main():
-    get_word()
+    print(get_word())
 
 
 while __name__ == '__main__':
