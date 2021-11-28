@@ -1,6 +1,7 @@
 import os
 import random
 from .os_info import *
+from .internal import *
 
 
 def fetch_words():
@@ -31,5 +32,23 @@ def random_word():
     list_length = len(all_words)
     index = random.randint(0, list_length - 1)
     word = all_words[index]
+
+    return word
+
+
+def get_word():
+    """Generates a random non-repeating word"""
+    #  TODO Efficiency Problem: Loops through until it gets a new word
+    while True:
+        word = random_word()
+        if word not in Game.used_words:
+            Game.used_words.append(word)
+            break
+        elif int(len(Game.used_words)) == len(fetch_words()):
+            Game.used_words.clear()
+            print("ALL WORDS USED - Reset List\n")
+            continue
+        else:
+            continue
 
     return word
