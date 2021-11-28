@@ -1,14 +1,5 @@
 import sys
 
-# Python 3.8+ Version Check
-major = sys.version_info.major
-minor = sys.version_info.minor
-micro = sys.version_info.micro
-current = f"{major}.{minor}.{micro}"
-if not major >= 3 and minor >= 8:
-    print(f"[Incorrect Python Version]\n"
-          f"Requires: Python 3.8+ (Current - {current})")
-
 
 def get_os(opt):
     """Gather OS dependant information"""
@@ -29,3 +20,16 @@ def get_os(opt):
         return clear_form
     else:
         return None
+
+
+if __name__ == '__main__':
+    exit()
+else:
+    # Python 3.8+ Version Check
+    major = sys.version_info.major
+    minor = sys.version_info.minor
+    micro = sys.version_info.micro
+    current = f"{major}.{minor}.{micro}"
+    if not major >= 3 and minor >= 8:
+        print(f"[Incorrect Python Version]\n"
+              f"Requires: Python 3.8+ (Current - {current})")

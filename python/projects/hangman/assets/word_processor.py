@@ -39,9 +39,13 @@ def get_word():
             break
         elif int(len(Game.used_words)) == len(fetch_words()):
             Game.used_words.clear()
-            # All words used. Reset used words
+            # All words used. Reset used_words
             continue
         else:
             continue
 
     return word
+
+
+if __name__ == '__main__':
+    exit()
