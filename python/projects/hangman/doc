@@ -1,6 +1,10 @@
 Simple Hangman Game
 Created by Noah Blaszak
 
+Python Version 3.8+
+
+Required Packages:
+
 
 """
 REQUIREMENTS
@@ -12,11 +16,6 @@ RULES
 * A number of times a user can get the incorrect letter and display tries left
 * Display correct and incorrect letters separately
 """
-
-
-Python Version 3.8+
-
-Required Packages:
 
 
 ############
