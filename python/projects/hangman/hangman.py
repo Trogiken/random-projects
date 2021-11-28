@@ -13,8 +13,8 @@ def get_word():
             used_words.append(word)
             break
         elif int(len(used_words)) == len(fetch_words()):
-            print("ALL WORDS USED - Resetting List\n")
             used_words.clear()
+            print("ALL WORDS USED - Reset List\n")
             continue
         else:
             continue
