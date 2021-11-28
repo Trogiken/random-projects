@@ -1,6 +1,6 @@
 import sys
 
-# Python 3.8 Version Check
+# Python 3.8+ Version Check
 major = sys.version_info.major
 minor = sys.version_info.minor
 micro = sys.version_info.micro
