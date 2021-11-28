@@ -5,10 +5,7 @@ major = sys.version_info.major
 minor = sys.version_info.minor
 micro = sys.version_info.micro
 current = f"{major}.{minor}.{micro}"
-if major >= 3 and minor >= 8:
-    print("Pass")
-    pass
-else:
+if not major >= 3 and minor >= 8:
     print(f"[Incorrect Python Version]\n"
           f"Requires: Python 3.8+ (Current - {current})")
 
