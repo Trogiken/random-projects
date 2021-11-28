@@ -11,7 +11,7 @@ def get_word():
         if word not in used_words:
             used_words.append(word)
             break
-        elif len(used_words) == len(fetch_words()):
+        elif int(len(used_words)) == len(fetch_words()):
             print("ALL WORDS USED - Resetting List\n")
             used_words.clear()
             continue
@@ -22,12 +22,12 @@ def get_word():
 
 
 def main():
-    print(get_word())
+    os.system(get_os(3))
+    print(f"Word = {get_word()}")
+    print(f"All Words: {fetch_words()}")
+    print(f"Old Words: {used_words}")
 
 
 while __name__ == '__main__':
     input()
-    os.system(get_os(3))
     main()
-    print(f"All Words: {fetch_words()}")
-    print(f"Old Words: {used_words}")

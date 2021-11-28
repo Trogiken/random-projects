@@ -21,8 +21,8 @@ def fetch_words():
         if words:
             return words
         else:
-            print("Words list Empty!")
-            input("Press Enter to Exit"); exit()
+            input("Words list Empty!\nPress Enter to Exit")
+            exit()
 
 
 def random_word():
