@@ -1,12 +1,12 @@
-import os
-import random
+from os import getcwd
+from random import randint
 from .os_info import *
 from .internal import *
 
 
 def fetch_words():
     """Read all words in words.txt and return in list format"""
-    cwd = os.getcwd()
+    cwd = getcwd()
     words = []
     with open(cwd + f"{get_os(1)}words", 'r') as f:
         raw_words = f.read().splitlines()
@@ -32,7 +32,7 @@ def get_word():
     while True:
         all_words = fetch_words()
         list_length = len(all_words)
-        index = random.randint(0, list_length - 1)
+        index = randint(0, list_length - 1)
         word = all_words[index]
         if word not in Game.used_words:
             Game.used_words.append(word)
