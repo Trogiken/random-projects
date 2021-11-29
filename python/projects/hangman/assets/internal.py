@@ -2,6 +2,7 @@ from yaml import safe_load
 
 
 def config(key):
+    """Process yaml and output requested variable"""
     with open('yaml.yaml', 'r') as file:
         prime_service = safe_load(file)
 
