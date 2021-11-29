@@ -5,7 +5,7 @@ from .internal import *
 
 
 def fetch_words():
-    """Read all word in word.txt and return in list format"""
+    """Read all words in words.txt and return in list format"""
     cwd = getcwd()
     words = []
     try:
@@ -31,19 +31,19 @@ def fetch_words():
 
 
 def get_word():
-    """Generates a random non-repeating word"""
+    """Generates a random non-repeating words"""
     while True:
         all_words = fetch_words()
         list_length = len(all_words)
         index = randint(0, list_length - 1)
         word = all_words[index]
-        #  TODO Efficiency Problem: Loops through until it gets a new word
+        #  TODO Efficiency Problem: Loops through until it gets a new words
         if word not in Game.used_words:
             Game.used_words.append(word)
             break
         elif int(len(Game.used_words)) == len(fetch_words()):
             Game.used_words.clear()
-            # All word used. Reset used_words
+            # All words used. Reset used_words
             continue
         else:
             continue
