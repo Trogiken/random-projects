@@ -9,7 +9,7 @@ def fetch_words():
     cwd = getcwd()
     words = []
     try:
-        with open(cwd + f"{get_os(1)}words", 'r') as f:
+        with open(cwd + f"{get_os(1)}words.txt", 'r') as f:
             raw_words = f.read().splitlines()
             for item in raw_words:
                 if item:
@@ -31,19 +31,19 @@ def fetch_words():
 
 
 def get_word():
-    """Generates a random non-repeating words"""
+    """Generates a random non-repeating words.txt"""
     while True:
         all_words = fetch_words()
         list_length = len(all_words)
         index = randint(0, list_length - 1)
         word = all_words[index]
-        #  TODO Efficiency Problem: Loops through until it gets a new words
+        #  TODO Efficiency Problem: Loops through until it gets a new words.txt
         if word not in Game.used_words:
             Game.used_words.append(word)
             break
         elif int(len(Game.used_words)) == len(fetch_words()):
             Game.used_words.clear()
-            # All words used. Reset used_words
+            # All words.txt used. Reset used_words
             continue
         else:
             continue
