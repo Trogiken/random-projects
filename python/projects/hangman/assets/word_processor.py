@@ -1,15 +1,12 @@
-from os import getcwd
 from random import randint
-from .os_info import *
 from .internal import *
 
 
 def fetch_words():
     """Read all words in words.txt and return in list format"""
-    cwd = getcwd()
     words = []
     try:
-        with open(cwd + f"{get_os(1)}words.txt", 'r') as f:
+        with open("words.txt", 'r') as f:
             raw_words = f.read().splitlines()
             for item in raw_words:
                 if item:
