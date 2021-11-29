@@ -3,26 +3,34 @@ from yaml import safe_load
 
 def config(key):
     """Process yaml and output requested variable"""
-    with open('yaml.yaml', 'r') as file:
-        prime_service = safe_load(file)
+    with open('config.yaml', 'r') as file:
+        data = safe_load(file)
 
-    options = ['url', 'port', 'prime']
+    options = ['default', 'multiplier', 'decrease', 'allowed_attempts', 'high_score']
     config_variable = None
     if key not in options:
         return config_variable
-    elif key == 'url':
-        config_variable = prime_service['rest']['url']
-    elif key == 'port':
-        config_variable = prime_service['rest']['port']
-    elif key == 'prime':
-        config_variable = prime_service['prime_numbers']
+    elif key == 'default':
+        config_variable = data['score']['default']
+    elif key == 'multiplier':
+        config_variable = data['score']['multiplier']
+    elif key == 'decrease':
+        config_variable = data['score']['decrease']
+    elif key == 'allowed_attempts':
+        config_variable = data['player']['allowed_attempts']
+    elif key == 'high_score':
+        config_variable = data['player']['high_score']
 
     return config_variable
 
 
 class Game:
-    used_words = []
+    looped_words = []
 
 
 class Player:
-    pass
+    score = config('default')
+    multiplier = config('multiplier')
+    decrease = config('decrease')
+    high_score = 0
+    used_chars = ['u']

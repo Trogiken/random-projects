@@ -1,0 +1,7 @@
+score:
+  default: 0
+  multiplier: 1
+  decrease: 5
+player:
+  allowed_attempts: 5
+  high_score: 0

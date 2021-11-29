@@ -35,12 +35,11 @@ def get_word():
         index = randint(0, list_length - 1)
         word = all_words[index]
         #  TODO Efficiency Problem: Loops through until it gets a new words.txt
-        if word not in Game.used_words:
-            Game.used_words.append(word)
+        if word not in Game.looped_words:
+            Game.looped_words.append(word)
             break
-        elif int(len(Game.used_words)) == len(fetch_words()):
-            Game.used_words.clear()
-            # All words.txt used. Reset used_words
+        elif int(len(Game.looped_words)) == len(fetch_words()):
+            Game.looped_words.clear()
             continue
         else:
             continue
