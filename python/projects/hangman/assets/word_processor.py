@@ -30,7 +30,7 @@ def fetch_words(file):
 def get_word():
     """Generates a random non-repeating words.txt"""
     while True:
-        all_words = fetch_words()
+        all_words = fetch_words("words.txt")
         list_length = len(all_words)
         index = randint(0, list_length - 1)
         word = all_words[index]
