@@ -2,11 +2,11 @@ from random import randint
 from .internal import *
 
 
-def fetch_words():
-    """Read all words in words.txt and return in list format"""
+def fetch_words(file):
+    """Read all words in a file and return in list format"""
     words = []
     try:
-        with open("words.txt", 'r') as f:
+        with open(f"{file}", 'r') as f:
             raw_words = f.read().splitlines()
             for item in raw_words:
                 if item:
