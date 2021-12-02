@@ -38,7 +38,7 @@ def get_word():
         if word not in Game.looped_words:
             Game.looped_words.append(word)
             break
-        elif int(len(Game.looped_words)) == len(fetch_words()):
+        elif int(len(Game.looped_words)) == len(all_words):
             Game.looped_words.clear()
             continue
         else:
