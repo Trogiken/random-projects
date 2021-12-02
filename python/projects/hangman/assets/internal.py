@@ -33,4 +33,4 @@ class Player:
     multiplier = config('multiplier')
     decrease = config('decrease')
     high_score = 0
-    used_chars = ['u']
+    used_chars = []

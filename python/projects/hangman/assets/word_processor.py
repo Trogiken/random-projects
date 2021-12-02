@@ -39,7 +39,9 @@ def get_word():
             Game.looped_words.append(word)
             break
         elif int(len(Game.looped_words)) == len(all_words):
+            last_word = Game.looped_words[-1]
             Game.looped_words.clear()
+            Game.looped_words.append(last_word)
             continue
         else:
             continue
