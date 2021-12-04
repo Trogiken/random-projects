@@ -3,7 +3,7 @@ from yaml import safe_load
 
 def config(key):
     """Process yaml and output requested variable"""
-    with open('config.yaml', 'r') as file:
+    with open('properties.yaml', 'r') as file:
         data = safe_load(file)
 
     options = ['default', 'multiplier', 'decrease', 'allowed_attempts', 'high_score']
