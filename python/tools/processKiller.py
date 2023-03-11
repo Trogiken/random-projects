@@ -71,7 +71,7 @@ def close(exit_code: int=0):
 
 def main():
     if not is_admin():  # check if script is running as admin
-        print("You must run this script as an administrator")
+        input("You must run this script as an administrator\n[Press any key to exit]")
         close(1)
 
     while True:
