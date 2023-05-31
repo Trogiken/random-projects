@@ -6,20 +6,14 @@ import signal
 
 
 def list_processes(requested_process=None):
-    """List all processes or those that contain requested_process in their name"""
-    all_processes = subprocess.check_output('tasklist /fo csv /nh', shell=True).splitlines()
+    """Return a list of all processes or a list of processes matching the requested process name"""
+    all_processes = subprocess.check_output('tasklist /fo csv /nh', shell=True).decode().splitlines()
 
     process_list = []
     for process in all_processes:
-        prs = str(process, 'utf-8')
-        image_name = prs.split(',')[0]
-        pid = prs.split(',')[1]
-        if requested_process is None:
+        image_name, pid, *_ = process.split(',')
+        if requested_process is None or requested_process.lower() in image_name.lower():
             process_list.append({'image_name': image_name, 'pid': pid})
-        elif requested_process.lower() in image_name.lower():
-            process_list.append({'image_name': image_name, 'pid': pid})
-        else:
-            continue
 
     return process_list
 
@@ -34,7 +28,6 @@ def kill_processes(processes: list):
 
         try:
             os.kill(pid, signal.SIGTERM)
-            time.sleep(0.5)
         except Exception:
             continue
 
@@ -55,6 +48,7 @@ def q_prompt(question: str):
 
 
 def is_admin():
+    """Return True if script is running as admin"""
     try:
         # assuming powershell is installed and set to PATH
         result = subprocess.check_output(['powershell', '-Command', '([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)'])
@@ -81,13 +75,13 @@ def main():
         if user_query == '0':
             close(0)
 
-        print()  # print empty line
+        print()
 
         # list processes
         print("Searching for processes...")
         listed_processes = list_processes(user_query)
-        if listed_processes:  # if process_list is not empty
-            for prs in listed_processes:  # print processes that will be killed
+        if listed_processes:  # check if any processes were found
+            for prs in listed_processes:
                 print(f'{prs["image_name"]}: {prs["pid"]}')
         else:
             reload = q_prompt('No processes found - Try Again?')
@@ -98,7 +92,7 @@ def main():
 
         # ask before killing
         user_verify = q_prompt('[WARNING] Kill the following processes?')
-        if user_verify:  # kill processes in processes_to_kill list
+        if user_verify:
             os.system('cls')
             print('Killing processes...')
             pid_kill_list = [process['pid'] for process in listed_processes]  # extract pid's from processes
@@ -109,16 +103,15 @@ def main():
 
         # query again and examine if there are process left
         new_query = list_processes(user_query)
-        if new_query:  # print any processes remaining after the killing using same query
+        if new_query:
             print(f'Failed to kill the following processes:')
             for prs in new_query:
                 print(f'{prs["image_name"]}: {prs["pid"]}')
         else:
             print(f'Successfully killed all {len(listed_processes)} processes')
 
-        print()  # print empty line
+        print()
 
-        # ask to kill more processes
         restart = q_prompt('Kill more processes?')
         if restart:
             continue
