@@ -13,12 +13,17 @@ import processKiller as prskiller
 
 
 class ProcessData:
-    # singleton
     __instance = None
 
     @staticmethod
     def getInstance():
         return ProcessData.__instance
+    
+    # reset instance
+    @staticmethod
+    def resetInstance():
+        ProcessData.__instance = None
+
 
     def __init__(self, process_list):
         self.processes = process_list
@@ -76,12 +81,14 @@ class Ui_MainWindow(object):
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
+
         self.actionSearch = QtWidgets.QAction(MainWindow)
         self.actionSearch.setObjectName("actionSearch")
-        self.actionKill = QtWidgets.QAction(MainWindow)
-        self.actionKill.setObjectName("actionKill")
+        self.actionSearch.triggered.connect(self.searchButtonClicked)
         self.actionReset = QtWidgets.QAction(MainWindow)
         self.actionReset.setObjectName("actionReset")
+        self.actionReset.triggered.connect(self.resetButtonClicked)
+
         self.menuOptions.addAction(self.actionSearch)
         self.menuOptions.addAction(self.actionReset)
         self.menubar.addAction(self.menuOptions.menuAction())
@@ -89,33 +96,10 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
     
-    def searchButtonClicked(self):
-        self.listWidget.clear()
-
-        user_query = self.searchField.text()
-        data = ProcessData(process_list=prskiller.list_processes(user_query))
-        if data.processes:  # check if any processes were found
-            for prs in data.processes:
-                self.listWidget.addItem(f'{prs["image_name"]}: {prs["pid"]}')
-        else:
-            pass
     
-    def resetButtonClicked(self):
-        self.searchField.clear()
-        self.listWidget.clear()
-    
-    def killButtonClicked(self):
-        data = ProcessData.getInstance()
-        pid_kill_list = [process['pid'] for process in data.processes]  # extract pid's from processes
-        stripped_list = [pid.strip('"') for pid in pid_kill_list]  # pass pid's with internal double quotes removed
-        prskiller.kill_processes(stripped_list)
-
-        self.searchField.clear()
-        self.listWidget.clear()
-
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Process Killer"))
         self.killButton.setToolTip(_translate("MainWindow", "Kill"))
         self.killButton.setStatusTip(_translate("MainWindow", "Kills the listed processes"))
         self.killButton.setText(_translate("MainWindow", "Kill"))
@@ -129,9 +113,40 @@ class Ui_MainWindow(object):
         self.resetButton.setText(_translate("MainWindow", "Reset"))
         self.menuOptions.setTitle(_translate("MainWindow", "Options"))
         self.actionSearch.setText(_translate("MainWindow", "Search"))
-        self.actionKill.setText(_translate("MainWindow", "Kill"))
+        self.actionSearch.setShortcut(_translate("MainWindow", "Return"))
         self.actionReset.setText(_translate("MainWindow", "Reset"))
+        self.actionReset.setShortcut(_translate("MainWindow", "Ctrl+Return"))
 
+
+    def searchButtonClicked(self):
+        self.listWidget.clear()
+        ProcessData.resetInstance()
+
+        user_query = self.searchField.text()
+        data = ProcessData(process_list=prskiller.list_processes(user_query))
+        if data.processes:  # check if any processes were found
+            for prs in data.processes:
+                self.listWidget.addItem(f'{prs["image_name"]}: {prs["pid"]}')
+        else:
+            pass
+    
+    def resetButtonClicked(self):
+        ProcessData.resetInstance()
+        self.searchField.clear()
+        self.listWidget.clear()
+    
+    def killButtonClicked(self):
+        data = ProcessData.getInstance()
+        if data is None:
+            return
+
+        pid_kill_list = [process['pid'] for process in data.processes]  # extract pid's from processes
+        stripped_list = [pid.strip('"') for pid in pid_kill_list]  # pass pid's with internal double quotes removed
+        prskiller.kill_processes(stripped_list)
+
+        ProcessData.resetInstance()
+        self.searchField.clear()
+        self.listWidget.clear()
 
 if __name__ == "__main__":
     import sys
