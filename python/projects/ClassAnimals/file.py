@@ -101,6 +101,8 @@ cow = Cow()
 pig = Pig()
 chicken = Chicken()
 
+print()
+
 # Save all animal instances into a single file with the file being in the same directory as this file
 save_animals(os.path.join(os.path.dirname(__file__), 'animal_data.pkl'), cow=cow, pig=pig, chicken=chicken)
 # Load the animal instances from the file
@@ -114,7 +116,7 @@ loaded_chicken = loaded_animals['chicken']
 # Example of using __str__ and __repr__
 print('loaded_cow:', loaded_cow)
 # Example of using __eq__ and __ne__
-print('loaded_cow == loaded_pig:', loaded_cow == loaded_pig)\
+print('loaded_cow == loaded_pig:', loaded_cow is loaded_pig)
 
 print()
 
