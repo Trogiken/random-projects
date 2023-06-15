@@ -130,6 +130,7 @@ dmypy.json
 
 # IDE
 .idea/
+.vscode/
 
 # System Files
 .DS_Store
