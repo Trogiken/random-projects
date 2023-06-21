@@ -94,11 +94,11 @@ if __name__ == '__main__':
         header = f"[{extension}'s]"
         print(header)
         print('-' * len(header))
-        for file in data.get(extension):  # for file (filename.extension, filename path)
-            if not file[0] == os.path.basename(__file__):  # if current file is not main script
+        for filename, filepath in data.get(extension):  # for file (filename.extension, filename path)
+            if not filename == os.path.basename(__file__):  # if current file is not main script
                 extension_folder = os.path.join(save_directory, extension)
                 if not os.path.exists(extension_folder):  # Don't create folder if it already exists
                     os.makedirs(extension_folder)
-                move_file(file[1], os.path.join(extension_folder, file[0]))
-            print(f"{file[0]} : {file[1]}")
+                move_file(filepath, os.path.join(extension_folder, filename))
+            print(f"{filename} : {filepath}")
         print()
