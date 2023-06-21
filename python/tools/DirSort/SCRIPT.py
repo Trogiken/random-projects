@@ -1,5 +1,7 @@
-"""Sort dir files by extension"""
+"""Sort dir files by extension into folders"""
 import os
+import sys
+from tkinter import filedialog
 
 
 def gather_files(directory: str) -> dict:
@@ -17,15 +19,15 @@ def gather_files(directory: str) -> dict:
         print(f"No files in '{directory}' to sort")
         return gathered_data
 
-    print(f"Gathering files in {directory}...")
     for file in os.listdir(directory):
         if os.path.isdir(os.path.join(directory, file)):  # Don't continue if file is directory
             continue
 
-        extension = os.path.splitext(file)[1][1:]  # Get last file extension (filename.pdf.txt -> txt)
+        _, extension = os.path.splitext(file)  # Get last file extension (filename.pdf.txt -> .txt)
+        extension = extension[1:]  # Remove '.' from extension
+
         if not extension:  # If file has no extension
             extension = 'NOEXTENSION'
-        print(extension)
         if not extension in gathered_data:
             gathered_data.update({extension: []})
         gathered_data[extension].append((file, os.path.join(directory, file)))  # Append tuple of filename and path (filename, path)
@@ -39,30 +41,62 @@ def move_file(source, destination):
     If destination path already exists, rename the file with index
     """
     if os.path.exists(destination):
-        file_name, file_extension = os.path.splitext(os.path.basename(source))
+        file_name, file_extension = os.path.splitext(os.path.basename(source))  # get filename and extension
         index = 1
         while True:
-            new_file_name = f"{file_name}_{index}{file_extension}"
-            new_destination = os.path.join(os.path.dirname(destination), new_file_name)
-            if not os.path.exists(new_destination):
+            new_file_name = f"{file_name}_{index}{file_extension}"  # new filename with index
+            new_destination = os.path.join(os.path.dirname(destination), new_file_name)  # new destination using new filename
+            if not os.path.exists(new_destination):  # if new destination doesn't exist, move file
                 os.rename(source, new_destination)
                 break
             index += 1
-    else:
+    else:  # if destination doesn't exist, move file
         os.rename(source, destination)
 
 
 if __name__ == '__main__':
-    currect_directory = os.path.dirname(__file__)
-    data = gather_files(currect_directory)
+    print("""
+    ____  _                __                      _____            __           
+   / __ \(_)_______  _____/ /_____  _______  __   / ___/____  _____/ /____  _____
+  / / / / / ___/ _ \/ ___/ __/ __ \/ ___/ / / /   \__ \/ __ \/ ___/ __/ _ \/ ___/
+ / /_/ / / /  /  __/ /__/ /_/ /_/ / /  / /_/ /   ___/ / /_/ / /  / /_/  __/ /    
+/_____/_/_/   \___/\___/\__/\____/_/   \__, /   /____/\____/_/   \__/\___/_/     
+                                      /____/                                     
+    """)
+    input('\nPress ENTER to continue...\n')
 
+    gather_dir = filedialog.askdirectory(title="Select directory to sort")
+    save_directory = gather_dir
+    if not gather_dir:
+        print("No directory selected")
+        sys.exit()
+
+    print(f'Gather Directory: {save_directory}')
+    print(f'Save Directory: {save_directory}')
+    change_save = input('Change save directory? y/n: ')
+    if change_save.lower() == 'y':
+        save_directory = filedialog.askdirectory(title="Select directory to save sorted files")
+        if not save_directory:
+            print("No directory selected")
+            sys.exit()
+        print(f'New Save Directory: {save_directory}')
+    elif change_save.lower() == 'n':
+        pass
+    else:
+        print("Invalid input")
+        sys.exit()
+    
+    input('\nPress ENTER to continue...\n')
+    
+    print(f"Gathering files in '{gather_dir}'...\n")
+    data = gather_files(gather_dir)
     for extension in data.keys():
-        header = f"All [{extension}'s]"
+        header = f"[{extension}'s]"
         print(header)
         print('-' * len(header))
         for file in data.get(extension):  # for file (filename.extension, filename path)
             if not file[0] == os.path.basename(__file__):  # if current file is not main script
-                extension_folder = os.path.join(currect_directory, extension)
+                extension_folder = os.path.join(save_directory, extension)
                 if not os.path.exists(extension_folder):  # Don't create folder if it already exists
                     os.makedirs(extension_folder)
                 move_file(file[1], os.path.join(extension_folder, file[0]))
