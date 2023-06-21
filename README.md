@@ -1,2 +1,2 @@
 # Random Projects
-Random Programming Projects that retarded people make
+Random stuff no one asked for
