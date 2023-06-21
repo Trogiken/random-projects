@@ -4,7 +4,33 @@ import sys
 from tkinter import filedialog
 
 
-def gather_files(directory: str) -> dict:
+def intense_gather_files(directory: str) -> dict:
+    """Gather and sort files by extension, including subdirectories"""
+    gathered_data = {}
+
+    if not os.path.exists(directory):
+        print(f"Directory '{directory}' does not exist")
+        return gathered_data
+    if not os.path.isdir(directory):
+        print(f"'{directory}' is not a directory")
+        return gathered_data
+
+    for root, _, files in os.walk(directory):
+        for file in files:
+            _, extension = os.path.splitext(file)  # Get file extension (filename.pdf.txt -> .txt)
+            extension = extension[1:]  # Remove '.' from extension
+
+            if not extension:  # If file has no extension
+                extension = 'NOEXTENSION'
+            if extension not in gathered_data:
+                gathered_data[extension] = []
+            file_path = os.path.join(root, file)
+            gathered_data[extension].append((file, file_path))  # Append tuple of filename and path (filename, path)
+
+    return gathered_data
+
+
+def normal_gather_files(directory: str) -> dict:
     """Gather and sort file by extension"""
     gathered_data = {}
 
@@ -65,14 +91,39 @@ if __name__ == '__main__':
     """)
     input('\nPress ENTER to continue...\n')
 
+    # choose between normal and intense gathering
+    print("Choose gathering method:")
+    print("1. Normal - Scan and sort selected directory")
+    print("2. Intense - Scan and sort selected directory and subdirectories")
+    while True:
+        method = input("Method: ")
+        if method == '1':
+            gather_files = normal_gather_files
+            break
+        elif method == '2':
+            gather_files = intense_gather_files
+            break
+        else:
+            print("Invalid input")
+            continue
+    
+    # Choose directory to sort
     gather_dir = filedialog.askdirectory(title="Select directory to sort")
     save_directory = gather_dir
     if not gather_dir:
         print("No directory selected")
         sys.exit()
 
-    print(f'Gather Directory: {save_directory}')
+    # Display settings
+    print()
+    if gather_files == normal_gather_files:
+        print("Normal mode selected")
+    elif gather_files == intense_gather_files:
+        print("Intense mode selected")
+    print(f'Gather Directory: {gather_dir}')
     print(f'Save Directory: {save_directory}')
+
+    # Ask to change save directory
     change_save = input('Change save directory? y/n: ')
     if change_save.lower() == 'y':
         save_directory = filedialog.askdirectory(title="Select directory to save sorted files")
@@ -88,6 +139,7 @@ if __name__ == '__main__':
     
     input('\nPress ENTER to continue...\n')
     
+    # Sort files
     print(f"Gathering files in '{gather_dir}'...\n")
     data = gather_files(gather_dir)
     for extension in data.keys():
