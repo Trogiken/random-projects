@@ -65,6 +65,9 @@ def create_hash_dict(directory_path):
             # add file path and file hash to dictionary
             hashes[file_path] = calculated_hash
             print(f"'{file_path}' -> '{calculated_hash}'")
+
+    # TODO No files to hash message
+    
     return hash_dict
 
 def check_data_integrity(directory_path, hashes):
@@ -87,14 +90,17 @@ def check_data_integrity(directory_path, hashes):
             print(f"'{file_path}' -> '{file_hash}' != '{calculated_hash}' : Bad")
     
     print('\nChecking for new files...\n')
+    new_files = False
     for root, _, files in os.walk(directory_path):
         for file in files:
             file_path = os.path.join(root, file)
             calculated_hash = create_hash(file_path)
 
-            if file_path not in hash_dict:
-                print(f"'{file_path}' -> '{calculated_hash}' : New File")  # TODO Does not work right, fix
-
+            if file_path not in hashes:
+                new_files = True
+                print(f"'{file_path}' -> '{calculated_hash}' : New File")
+    if not new_files:
+        print('Now new files found')
 
     return False # TODO Use boolean to return if data is corrupted or not
 
