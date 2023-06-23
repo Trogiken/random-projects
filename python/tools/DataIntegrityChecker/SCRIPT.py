@@ -102,6 +102,9 @@ def check_data_integrity(directory_path, hashes):
     if not new_files:
         print('Now new files found')
 
+
+    # TODO summary of data integrity check
+
     return False # TODO Use boolean to return if data is corrupted or not
 
 
