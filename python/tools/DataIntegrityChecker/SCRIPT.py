@@ -24,19 +24,16 @@ def create_hash(file_path):
 
 def create_hash_dict(directory_path):
     """Walk through a directory and subdirectories to create a dictionary of hashes for each file."""
-    # create empty dictionary
     hash_dict = {}
-    # loop through all files in directory and subdirectories
     for root, _, files in os.walk(directory_path):
         for file in files:
             file_path = os.path.join(root, file)
             file_hash = create_hash(file_path)
-            if file_hash is None:  # if file_hash is None then skip to next file
-                continue
+            if file_hash is None:
+                hash_dict[file_path] = '?'
             # add file path and file hash to dictionary
             hash_dict[file_path] = file_hash
             print(f'{file_path} -> {file_hash}')
-    # return dictionary
     return hash_dict
 
 if __name__ == '__main__':
