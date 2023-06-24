@@ -151,8 +151,8 @@ def create_hash_dict_disk(directory_path: str, data_save_path: str) -> int:
                         working_directory TEXT PRIMARY KEY,
                         function TEXT
                     )''')
-    # Insert working directory and function into the table
-    cursor.execute('INSERT OR REPLACE INTO attributes (working_directory, function) VALUES (?, ?)', (directory_path, 'disk'))
+    # Insert working directory into the table
+    cursor.execute('INSERT OR REPLACE INTO attributes (working_directory) VALUES (?, ?)', (directory_path))
 
     for root, _, files in os.walk(directory_path):
         for file in files:
@@ -285,7 +285,6 @@ if __name__ == '__main__':
                 hash_dict = json.load(file)
                 hashes = hash_dict['hashes']
                 working_directory = hash_dict['attributes']['working_directory']
-                function = hash_dict['attributes']['function']
             
             data_summary = check_data_integrity_memory(working_directory, hashes)
         elif extension == '.sqlite3':
@@ -293,13 +292,13 @@ if __name__ == '__main__':
             cursor = connection.cursor()
             cursor.execute('SELECT file_path, calculated_hash FROM hashes')
             hashes = cursor.fetchall()
-            cursor.execute('SELECT working_directory, function FROM attributes')
-            working_directory, function = cursor.fetchone()
+            cursor.execute('SELECT working_directory FROM attributes')
+            working_directory = cursor.fetchone()
             connection.close()
 
             data_summary = check_data_integrity_disk(working_directory, data_save_path)
         else:
-            print('Invalid function detected.')
+            print('Invalid extension detected.')
             sys.exit()
         
 
