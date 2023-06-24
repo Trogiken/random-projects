@@ -46,8 +46,8 @@ def create_hash(file_path: str) -> str:
             file_hash = hashlib.sha256(file_read).hexdigest()
             return file_hash
     except BaseException as error:
-        logging.error(f"Failed to hash '{file_path}' | {error}")
-        return None
+        print(f"Failed to create hash! | {error}\nReplacing hash with '?'")
+        return '?'
 
 def create_hash_dict(directory_path: str) -> dict:
     """Walk through a directory and subdirectories to create a dictionary of hashes for each file."""
@@ -60,8 +60,6 @@ def create_hash_dict(directory_path: str) -> dict:
         for file in files:
             file_path = os.path.join(root, file)
             calculated_hash = create_hash(file_path)
-            if calculated_hash is None:  # if hash creation failed then set hash to '?'
-                hash_dict[file_path] = '?'
             # add file path and file hash to dictionary
             hashes[file_path] = calculated_hash
             print(f"'{file_path}' -> '{calculated_hash}'")
@@ -139,12 +137,12 @@ if __name__ == '__main__':
 
         print('Select a location to store the hash dictionary')
         save_path = ask_directory('Select a Save Directory')
+        save_path = os.path.join(save_path, 'hash_dict.json')
 
-        with open(os.path.join(save_path, 'hash_dict.json'), 'w') as file:
+        with open(save_path, 'w') as file:
             json.dump(hash_dict, file, indent=4)
 
         print(f"DONE!\n{len(hash_dict['hashes'])} Files Hashed\nHash dictionary saved to '{save_path}'")
-        print()
     elif option_selected == '2':
         print('Select Hash Dictionary')
         dict_path = ask_filelocation('Select Hash Dictionary', 'JSON (*.json)')
