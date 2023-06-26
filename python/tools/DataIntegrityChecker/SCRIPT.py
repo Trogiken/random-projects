@@ -51,6 +51,10 @@ def create_hash(file_path: str) -> str:
         file_hash = hasher.hexdigest()
         return file_hash
     except BaseException as error:
+        # if error is keyboard interrupt, exit program
+        if isinstance(error, KeyboardInterrupt):
+            print('Keyboard Interrupt Detected')
+            sys.exit()
         print(f"Failed to create hash! | {error}\nReplacing hash with '?'")
         return '?'
 
@@ -149,10 +153,10 @@ def create_hash_dict_disk(directory_path: str, data_save_path: str) -> int:
     # create attribute table
     cursor.execute('''CREATE TABLE IF NOT EXISTS attributes (
                         working_directory TEXT PRIMARY KEY,
-                        function TEXT
+                        path TEXT
                     )''')
     # Insert working directory into the table
-    cursor.execute('INSERT OR REPLACE INTO attributes (working_directory) VALUES (?, ?)', (directory_path))
+    cursor.execute('INSERT OR REPLACE INTO attributes (working_directory) VALUES (?)', (directory_path,))
 
     for root, _, files in os.walk(directory_path):
         for file in files:
@@ -277,6 +281,8 @@ if __name__ == '__main__':
 
         data_save_path = ask_filelocation('Select Hash Dictionary', 'JSON (*.json);;SQLite3 (*.sqlite3)')
 
+        # TODO Add a way to change the working directory path such as if the files were transfered to a new drive
+
         # get extension
         _, extension = os.path.splitext(data_save_path)
 
@@ -290,10 +296,10 @@ if __name__ == '__main__':
         elif extension == '.sqlite3':
             connection = sqlite3.connect(data_save_path)
             cursor = connection.cursor()
-            cursor.execute('SELECT file_path, calculated_hash FROM hashes')
+            cursor.execute('SELECT calculated_hash FROM hashes')
             hashes = cursor.fetchall()
             cursor.execute('SELECT working_directory FROM attributes')
-            working_directory = cursor.fetchone()
+            working_directory = cursor.fetchone()[0]
             connection.close()
 
             data_summary = check_data_integrity_disk(working_directory, data_save_path)
@@ -301,7 +307,6 @@ if __name__ == '__main__':
             print('Invalid extension detected.')
             sys.exit()
         
-
         summary_msg = f"Summary [{working_directory}]"
         print(f"""
         {summary_msg}
