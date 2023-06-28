@@ -1,5 +1,3 @@
-"""Create hash for each file in a directory and subdirectories to check for data integrity."""
-
 import os
 import sys
 import hashlib
@@ -22,6 +20,7 @@ def ask_filelocation(title: str, name_filter: str) -> str:
         print('Canceled')
         sys.exit()
 
+
 def ask_directory(title: str) -> str:
     """Return the directory path of the directory selected."""
     directory_dialog = QFileDialog()
@@ -40,19 +39,19 @@ def create_hash(file_path: str) -> Tuple[str, str]:
     try:
         chunk_size = 4096
         file_size = os.path.getsize(file_path)
-        
+
         if file_size > 1_000_000_000:  # If file size around 1 Gb or larger
             chunk_size = 8192
 
         hasher = hashlib.sha256()
-        
+
         with open(file_path, 'rb') as file:
             while True:
                 chunk = file.read(chunk_size)
                 if not chunk:
                     break
                 hasher.update(chunk)
-        
+
         file_hash = hasher.hexdigest()
         return file_path, file_hash
     except BaseException as error:
@@ -69,7 +68,7 @@ def create_hash_db(directory_path: str, data_save_path: str) -> int:
         else:
             print('Canceled')
             sys.exit()
-    
+
     connection = sqlite3.connect(data_save_path)
     cursor = connection.cursor()
 
@@ -99,7 +98,8 @@ def create_hash_db(directory_path: str, data_save_path: str) -> int:
             batch_data.extend(results)
 
             if len(batch_data) >= batch_size:  # If batch size is reached, insert data into the database
-                cursor.executemany('INSERT OR REPLACE INTO hashes (file_path, calculated_hash) VALUES (?, ?)', batch_data)
+                cursor.executemany('INSERT OR REPLACE INTO hashes (file_path, calculated_hash) VALUES (?, ?)',
+                                   batch_data)
                 batch_data = []
                 print(f"Processed {len(results)} files")
 
@@ -133,7 +133,7 @@ def check_data_integrity_db(directory_path: str, data_save_path: str) -> dict:
     number_ok_files = 0
     number_unknown_files = 0
 
-    files_checked = set()  # BUG: May cause memory issues if there are a lot of files
+    files_checked = set()
     for row in cursor.execute('SELECT file_path, calculated_hash FROM hashes'):
         files_checked.add(row[0])
         file_path = row[0]
@@ -185,6 +185,72 @@ def check_data_integrity_db(directory_path: str, data_save_path: str) -> dict:
     }
 
 
+def compare_databases(db1_path: str, db2_path: str) -> dict:
+    """Compare two hash databases and return a summary of the differences."""
+    connection1 = sqlite3.connect(db1_path)
+    cursor1 = connection1.cursor()
+
+    connection2 = sqlite3.connect(db2_path)
+    cursor2 = connection2.cursor()
+
+    cursor1.execute('SELECT file_path, calculated_hash FROM hashes')
+    db1_files = {row[0]: row[1] for row in cursor1.fetchall()}
+
+    cursor2.execute('SELECT file_path, calculated_hash FROM hashes')
+    db2_files = {row[0]: row[1] for row in cursor2.fetchall()}
+
+    common_files = set(db1_files.keys()) & set(db2_files.keys())
+    unique_files_db1 = set(db1_files.keys()) - set(db2_files.keys())
+    unique_files_db2 = set(db2_files.keys()) - set(db1_files.keys())
+    ok_files = []
+    bad_files = []
+
+    
+
+    print(f"Common files in both databases ({db1_path} and {db2_path}):\n")
+
+    for file_path in common_files:
+        hash_db1 = db1_files[file_path]
+        hash_db2 = db2_files[file_path]
+        if hash_db1 == hash_db2:
+            summary['ok_files'].append((file_path, hash_db1))
+            print(f"'{file_path}' -> Hash: '{hash_db1}'")
+        else:
+            summary['bad_files'].append((file_path, hash_db1, hash_db2))
+            print(f"'{file_path}' -> Hash in {db1_path}: '{hash_db1}', Hash in {db2_path}: '{hash_db2}'")
+
+    print('\nUnique files in the first database:\n')
+
+    for file_path in unique_files_db1:
+        hash_db1 = db1_files[file_path]
+        print(f"'{file_path}' -> Hash: '{hash_db1}'")
+        summary['unique_files_db1'].append((file_path, hash_db1))
+
+    print('\nUnique files in the second database:\n')
+
+    for file_path in unique_files_db2:
+        hash_db2 = db2_files[file_path]
+        print(f"'{file_path}' -> Hash: '{hash_db2}'")
+        summary['unique_files_db2'].append((file_path, hash_db2))
+
+    connection1.close()
+    connection2.close()
+
+    summary = {
+        'number_common_files': len(common_files),
+        'number_unique_files_db1': len(unique_files_db1),
+        'number_unique_files_db2': len(unique_files_db2),
+        'number_ok_files': len(ok_files),
+        'number_bad_files': len(bad_files),
+        'common_files': [],
+        'unique_files_db1': [],
+        'unique_files_db2': [],
+        'ok_files': [],
+        'bad_files': []
+    }
+
+    return summary
+
 
 if __name__ == '__main__':
     app = QApplication([])
@@ -193,6 +259,7 @@ if __name__ == '__main__':
         Options:
         1. Create Hash Database
         2. Check Data Integrity
+        3. Compare Databases
     """)
 
     main_option_selected = input('Enter option: ')
@@ -205,7 +272,7 @@ if __name__ == '__main__':
         print('Select a location to store the hash database')
         data_save_path = ask_directory('Select a Save Directory')
         print(f'Selected save directory: {data_save_path}')
-        
+
         data_save_path = os.path.join(data_save_path, 'hash_data.sqlite3')
         number_files = create_hash_db(directory_path, data_save_path)
 
@@ -214,8 +281,7 @@ if __name__ == '__main__':
         print('Select Hash Database')
 
         data_save_path = ask_filelocation('Select Hash Database', 'SQLite3 (*.sqlite3)')
-
-        # TODO Add a way to change the working directory path such as if the files were transfered to a new drive
+        print(f'Selected hash database: {data_save_path}')
 
         # get extension
         _, extension = os.path.splitext(data_save_path)
@@ -233,7 +299,7 @@ if __name__ == '__main__':
         else:
             print('Invalid File Detected')
             sys.exit()
-        
+
         summary_msg = f"Summary [{working_directory}]"
         print(f"""
         {summary_msg}
@@ -241,11 +307,40 @@ if __name__ == '__main__':
             {len(hashes)} Total Files Checked:
 
             New: {data_summary['number_new_files']:>5}
-            Deleted: {data_summary['number_deleted_files']}
+            Deleted: {data_summary['number_deleted_files']:>5}
             Bad: {data_summary['number_bad_files']:>5}
-            Ok: {data_summary['number_ok_files']:>6}
-            Unknown: {data_summary['number_unknown_files']}
-              """)
+            OK: {data_summary['number_ok_files']:>5}
+            Unknown: {data_summary['number_unknown_files']:>5}
+        """)
+    elif main_option_selected == '3':
+        print('Select first Hash Database')
+
+        db1_path = ask_filelocation('Select First Hash Database', 'SQLite3 (*.sqlite3)')
+        print(f'Selected first hash database: {db1_path}')
+
+        print('Select second Hash Database')
+
+        db2_path = ask_filelocation('Select Second Hash Database', 'SQLite3 (*.sqlite3)')
+        print(f'Selected second hash database: {db2_path}')
+
+        summary = compare_databases(db1_path, db2_path)
+
+        summary_msg = f"Summary [{db1_path} and {db2_path}]"
+        print(f"""
+        {summary_msg}
+        {'-' * len(summary_msg)}
+            Totals:
+            Common Files: {summary['number_common_files']:>5}
+            Unique Files in {db1_path}: {summary['number_unique_files_db1']:>5}
+            Unique Files in {db2_path}: {summary['number_unique_files_db2']:>5}
+            Ok Files in Common: {summary['number_ok_files']:>5}
+            Bad Files in Common: {summary['number_bad_files']:>5}
+
+            Files:
+            Unique Files in {db1_path}: {summary['unique_files_db1'][0]}
+            Unique Files in {db2_path}: {summary['unique_files_db2'][0]}
+            # Ok Files in Common: {summary['ok_files']}
+            Bad Files in Common: {summary['bad_files']}
+        """)
     else:
-        print('Invalid option selected.')
-        sys.exit()
+        print('Invalid Option Selected')
