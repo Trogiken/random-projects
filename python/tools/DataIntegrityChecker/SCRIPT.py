@@ -60,6 +60,7 @@ def create_hash(file_path: str) -> Tuple[str, str]:
 
 
 def create_hash_db(directory_path: str, data_save_path: str) -> int:
+    # TODO allow the renaming of the database
     if os.path.exists(data_save_path):
         print(f"\nHash database already exists at '{data_save_path}'\nDelete it? (y/n)\n")
         delete_database = input('Enter option: ')
