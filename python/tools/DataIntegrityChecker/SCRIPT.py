@@ -211,6 +211,7 @@ def compare_databases(db1_path: str, db2_path: str) -> dict:
     print('\nComparing hashes...')
     ok_files = [(file_path, db1_files[file_path]) for file_path in common_files if db1_files[file_path] == db2_files[file_path]]
     bad_files = [(file_path, db1_files[file_path], db2_files[file_path]) for file_path in common_files if db1_files[file_path] != db2_files[file_path]]
+    unknown = [file_path for file_path in common_files if db1_files[file_path] == '?' or db2_files[file_path] == '?']
 
     print('\nUnique files in the first database:')
     unique_files_db1 = set(db1_files.keys()) - set(db2_files.keys())
@@ -228,11 +229,13 @@ def compare_databases(db1_path: str, db2_path: str) -> dict:
         'number_unique_files_db2': len(unique_files_db2),
         'number_ok_files': len(ok_files),
         'number_bad_files': len(bad_files),
+        'number_unknown_files': len(unknown),
         'common_files': common_files,
         'unique_files_db1': unique_files_db1,
         'unique_files_db2': unique_files_db2,
         'ok_files': ok_files,
         'bad_files': bad_files,
+        'unknown': unknown,
     }
 
     return summary
@@ -265,7 +268,6 @@ if __name__ == '__main__':
         print(f"DONE!\n{number_files} Files Hashed\nHash database saved to '{data_save_path}'")
     elif main_option_selected == '2':
         print('Select Hash Database')
-
         data_save_path = ask_filelocation('Select Hash Database', 'SQLite3 (*.sqlite3)')
         print(f'Selected hash database: {data_save_path}')
 
@@ -304,12 +306,10 @@ if __name__ == '__main__':
 
     elif main_option_selected == '3':
         print('Select first Hash Database')
-
         db1_path = ask_filelocation('Select First Hash Database', 'SQLite3 (*.sqlite3)')
         print(f'Selected first hash database: {db1_path}')
 
         print('Select second Hash Database')
-
         db2_path = ask_filelocation('Select Second Hash Database', 'SQLite3 (*.sqlite3)')
         print(f'Selected second hash database: {db2_path}')
 
@@ -325,6 +325,7 @@ if __name__ == '__main__':
             Unique Files in {db2_path}: {summary['number_unique_files_db2']:>5}
             Ok Files in Common: {summary['number_ok_files']:>5}
             Bad Files in Common: {summary['number_bad_files']:>5}
+            Unknown Files in Common: {summary['number_unknown_files']:>5}
         """)
 
         print('Save summary to a json file? (y/n)')
@@ -368,6 +369,7 @@ if __name__ == '__main__':
                 'unique_files_db2': summary['unique_files_db2'],
                 'ok_files': summary['ok_files'],
                 'bad_files': summary['bad_files'],
+                'unknown': summary['unknown'],
             }
             # write summary to json format
             with open(summary_save_path, 'w') as file:
