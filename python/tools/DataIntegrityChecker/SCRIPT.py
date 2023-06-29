@@ -3,7 +3,6 @@ import sys
 import hashlib
 import sqlite3
 import json
-import time
 from typing import Tuple
 from multiprocessing import Pool
 from PyQt6.QtWidgets import QApplication, QFileDialog
@@ -125,6 +124,9 @@ def create_hash_db(directory_path: str, data_save_path: str) -> int:
 def check_data_integrity_db(directory_path: str, data_save_path: str) -> dict:
     """Utilizing the hash database, check data integrity of files in a directory and subdirectories,
     and return a summary of the results."""
+
+    # TODO merge this function with create_hash_db
+
     connection = sqlite3.connect(data_save_path)
     cursor = connection.cursor()
 
@@ -202,41 +204,20 @@ def compare_databases(db1_path: str, db2_path: str) -> dict:
     cursor2.execute('SELECT file_path, calculated_hash FROM hashes')
     db2_files = {row[0]: row[1] for row in cursor2.fetchall()}
 
+
+    print(f"\nCommon files in both databases...")
     common_files = set(db1_files.keys()) & set(db2_files.keys())
-    unique_files_db1 = set(db1_files.keys()) - set(db2_files.keys())
-    unique_files_db2 = set(db2_files.keys()) - set(db1_files.keys())
+
+    print('\nComparing hashes...')
     ok_files = [(file_path, db1_files[file_path]) for file_path in common_files if db1_files[file_path] == db2_files[file_path]]
     bad_files = [(file_path, db1_files[file_path], db2_files[file_path]) for file_path in common_files if db1_files[file_path] != db2_files[file_path]]
 
+    print('\nUnique files in the first database:')
+    unique_files_db1 = set(db1_files.keys()) - set(db2_files.keys())
 
-    print(f"\nCommon files in both databases:\n")
-    time.sleep(1)
+    print('\nUnique files in the second database:')
+    unique_files_db2 = set(db2_files.keys()) - set(db1_files.keys())
 
-    for file_path in common_files:
-        print(f"'{file_path}'")
-
-    print('\nComparing hashes...\n')
-    time.sleep(1)
-
-    for file_path, hash in ok_files:
-        print(f"'{file_path}' -> Hash: '{hash}': OK")
-    
-    for file_path, hash_db1, hash_db2 in bad_files:
-        print(f"'{file_path}' -> Hash: '{hash_db1}' != '{hash_db2}': BAD")
-
-    print('\nUnique files in the first database:\n')
-    time.sleep(1)
-
-    for file_path in unique_files_db1:
-        hash_db1 = db1_files[file_path]
-        print(f"'{file_path}' -> Hash: '{hash_db1}'")
-
-    print('\nUnique files in the second database:\n')
-    time.sleep(1)
-
-    for file_path in unique_files_db2:
-        hash_db2 = db2_files[file_path]
-        print(f"'{file_path}' -> Hash: '{hash_db2}'")
 
     connection1.close()
     connection2.close()
@@ -307,6 +288,7 @@ if __name__ == '__main__':
 
         summary_msg = f"Summary [{working_directory}]"
         print(f"""
+              
         {summary_msg}
         {'-' * len(summary_msg)}
             {len(hashes)} Total Files Checked:
