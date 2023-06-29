@@ -2,6 +2,8 @@ import os
 import sys
 import hashlib
 import sqlite3
+import json
+import time
 from typing import Tuple
 from multiprocessing import Pool
 from PyQt6.QtWidgets import QApplication, QFileDialog
@@ -203,36 +205,38 @@ def compare_databases(db1_path: str, db2_path: str) -> dict:
     common_files = set(db1_files.keys()) & set(db2_files.keys())
     unique_files_db1 = set(db1_files.keys()) - set(db2_files.keys())
     unique_files_db2 = set(db2_files.keys()) - set(db1_files.keys())
-    ok_files = []
-    bad_files = []
+    ok_files = [(file_path, db1_files[file_path]) for file_path in common_files if db1_files[file_path] == db2_files[file_path]]
+    bad_files = [(file_path, db1_files[file_path], db2_files[file_path]) for file_path in common_files if db1_files[file_path] != db2_files[file_path]]
 
-    
 
-    print(f"Common files in both databases ({db1_path} and {db2_path}):\n")
+    print(f"\nCommon files in both databases:\n")
+    time.sleep(1)
 
     for file_path in common_files:
-        hash_db1 = db1_files[file_path]
-        hash_db2 = db2_files[file_path]
-        if hash_db1 == hash_db2:
-            summary['ok_files'].append((file_path, hash_db1))
-            print(f"'{file_path}' -> Hash: '{hash_db1}'")
-        else:
-            summary['bad_files'].append((file_path, hash_db1, hash_db2))
-            print(f"'{file_path}' -> Hash in {db1_path}: '{hash_db1}', Hash in {db2_path}: '{hash_db2}'")
+        print(f"'{file_path}'")
+
+    print('\nComparing hashes...\n')
+    time.sleep(1)
+
+    for file_path, hash in ok_files:
+        print(f"'{file_path}' -> Hash: '{hash}': OK")
+    
+    for file_path, hash_db1, hash_db2 in bad_files:
+        print(f"'{file_path}' -> Hash: '{hash_db1}' != '{hash_db2}': BAD")
 
     print('\nUnique files in the first database:\n')
+    time.sleep(1)
 
     for file_path in unique_files_db1:
         hash_db1 = db1_files[file_path]
         print(f"'{file_path}' -> Hash: '{hash_db1}'")
-        summary['unique_files_db1'].append((file_path, hash_db1))
 
     print('\nUnique files in the second database:\n')
+    time.sleep(1)
 
     for file_path in unique_files_db2:
         hash_db2 = db2_files[file_path]
         print(f"'{file_path}' -> Hash: '{hash_db2}'")
-        summary['unique_files_db2'].append((file_path, hash_db2))
 
     connection1.close()
     connection2.close()
@@ -243,11 +247,11 @@ def compare_databases(db1_path: str, db2_path: str) -> dict:
         'number_unique_files_db2': len(unique_files_db2),
         'number_ok_files': len(ok_files),
         'number_bad_files': len(bad_files),
-        'common_files': [],
-        'unique_files_db1': [],
-        'unique_files_db2': [],
-        'ok_files': [],
-        'bad_files': []
+        'common_files': common_files,
+        'unique_files_db1': unique_files_db1,
+        'unique_files_db2': unique_files_db2,
+        'ok_files': ok_files,
+        'bad_files': bad_files,
     }
 
     return summary
@@ -313,6 +317,9 @@ if __name__ == '__main__':
             OK: {data_summary['number_ok_files']:>5}
             Unknown: {data_summary['number_unknown_files']:>5}
         """)
+
+        # TODO add option to save summary to a text file
+
     elif main_option_selected == '3':
         print('Select first Hash Database')
 
@@ -336,12 +343,57 @@ if __name__ == '__main__':
             Unique Files in {db2_path}: {summary['number_unique_files_db2']:>5}
             Ok Files in Common: {summary['number_ok_files']:>5}
             Bad Files in Common: {summary['number_bad_files']:>5}
-
-            Files:
-            Unique Files in {db1_path}: {summary['unique_files_db1'][0]}
-            Unique Files in {db2_path}: {summary['unique_files_db2'][0]}
-            # Ok Files in Common: {summary['ok_files']}
-            Bad Files in Common: {summary['bad_files']}
         """)
+
+        print('Save summary to a json file? (y/n)')
+
+        # change set to a list so that it can be serialized to json
+        if not summary['common_files']:
+            summary['common_files'] = []
+        else:
+            summary['common_files'] = list(summary['common_files'])
+        if not summary['unique_files_db1']:
+            summary['unique_files_db1'] = []
+        else:
+            summary['unique_files_db1'] = list(summary['unique_files_db1'])
+        if not summary['unique_files_db2']:
+            summary['unique_files_db2'] = []
+        else:
+            summary['unique_files_db2'] = list(summary['unique_files_db2'])
+        if not summary['ok_files']:  # Already list
+            summary['ok_files'] = []
+        if not summary['bad_files']:  # Already list
+            summary['bad_files'] = []
+
+        save_summary = input('Enter option: ')
+        if save_summary.casefold() == 'y':
+            print('Select a location to save the summary')
+            summary_save_path = ask_directory('Select a Save Directory')
+            print(f'Selected save directory: {summary_save_path}')
+
+            print('Saving Summary...')
+            summary_save_path = os.path.join(summary_save_path, 'summary.json')
+            json_save = {
+                'summary': {
+                    'number_common_files': summary['number_common_files'],
+                    'number_unique_files_db1': summary['number_unique_files_db1'],
+                    'number_unique_files_db2': summary['number_unique_files_db2'],
+                    'number_ok_files': summary['number_ok_files'],
+                    'number_bad_files': summary['number_bad_files'],
+                },
+                'common_files': summary['common_files'],
+                'unique_files_db1': summary['unique_files_db1'],
+                'unique_files_db2': summary['unique_files_db2'],
+                'ok_files': summary['ok_files'],
+                'bad_files': summary['bad_files'],
+            }
+            # write summary to json format
+            with open(summary_save_path, 'w') as file:
+                json.dump(json_save, file, indent=4)
+            print(f"Summary saved to '{summary_save_path}'")
+        else:
+            print('Canceled')
+            sys.exit()
     else:
         print('Invalid Option Selected')
+        sys.exit()
