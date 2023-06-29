@@ -147,7 +147,7 @@ def check_data_integrity_db(directory_path: str, data_save_path: str) -> dict:
             number_deleted_files += 1
             continue
 
-        calculated_hash = create_hash(file_path)
+        _, calculated_hash = create_hash(file_path)
 
         if file_hash == '?':
             print(f"'{file_path}' : ?")
