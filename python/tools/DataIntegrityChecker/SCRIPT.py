@@ -3,6 +3,7 @@ import sys
 import hashlib
 import sqlite3
 import json
+import tempfile
 from typing import Tuple
 from multiprocessing import Pool
 from PyQt6.QtWidgets import QApplication, QFileDialog
@@ -93,6 +94,7 @@ def create_hash_db(directory_path: str, data_save_path: str) -> int:
 
     print('\nCreating Hashes...\n')
 
+    # BUG processed file messages don't add up to total files hashed
     with Pool() as pool:
         for root, _, files in os.walk(directory_path):
             file_paths = [os.path.join(root, file) for file in files]
@@ -119,77 +121,77 @@ def create_hash_db(directory_path: str, data_save_path: str) -> int:
     num_files = cursor.fetchone()[0]
     connection.close()
 
-    return num_files
+    return data_save_path, num_files
 
 
-def check_data_integrity_db(directory_path: str, data_save_path: str) -> dict:
-    """Utilizing the hash database, check data integrity of files in a directory and subdirectories,
-    and return a summary of the results."""
+# def check_data_integrity_db(directory_path: str, data_save_path: str) -> dict:
+#     """Utilizing the hash database, check data integrity of files in a directory and subdirectories,
+#     and return a summary of the results."""
 
-    # TODO merge this function with create_hash_db
+#     # TODO merge this function with create_hash_db
 
-    connection = sqlite3.connect(data_save_path)
-    cursor = connection.cursor()
+#     connection = sqlite3.connect(data_save_path)
+#     cursor = connection.cursor()
 
-    print('\nChecking for Data Integrity...\n')
+#     print('\nChecking for Data Integrity...\n')
 
-    number_new_files = 0
-    number_deleted_files = 0
-    number_bad_files = 0
-    number_ok_files = 0
-    number_unknown_files = 0
+#     number_new_files = 0
+#     number_deleted_files = 0
+#     number_bad_files = 0
+#     number_ok_files = 0
+#     number_unknown_files = 0
 
-    files_checked = set()
-    for row in cursor.execute('SELECT file_path, calculated_hash FROM hashes'):
-        files_checked.add(row[0])
-        file_path = row[0]
-        file_hash = row[1]
+#     files_checked = set()
+#     for row in cursor.execute('SELECT file_path, calculated_hash FROM hashes'):
+#         files_checked.add(row[0])
+#         file_path = row[0]
+#         file_hash = row[1]
 
-        if not os.path.exists(file_path):
-            print(f"'{file_path}' -> '{file_hash}' : Deleted")
-            number_deleted_files += 1
-            continue
+#         if not os.path.exists(file_path):
+#             print(f"'{file_path}' -> '{file_hash}' : Deleted")
+#             number_deleted_files += 1
+#             continue
 
-        _, calculated_hash = create_hash(file_path)
+#         _, calculated_hash = create_hash(file_path)
 
-        if file_hash == '?':
-            print(f"'{file_path}' : ?")
-            number_unknown_files += 1
-        elif file_hash == calculated_hash:
-            print(f"'{file_path}' -> '{file_hash}' : Ok")
-            number_ok_files += 1
-        else:
-            print(f"'{file_path}' -> '{file_hash}' != '{calculated_hash}' : Bad")
-            number_bad_files += 1
+#         if file_hash == '?':
+#             print(f"'{file_path}' : ?")
+#             number_unknown_files += 1
+#         elif file_hash == calculated_hash:
+#             print(f"'{file_path}' -> '{file_hash}' : Ok")
+#             number_ok_files += 1
+#         else:
+#             print(f"'{file_path}' -> '{file_hash}' != '{calculated_hash}' : Bad")
+#             number_bad_files += 1
 
-    print('\nChecking for new files...\n')
+#     print('\nChecking for new files...\n')
 
-    new_files = False
-    for root, _, files in os.walk(directory_path):
-        for file in files:
-            file_path = os.path.join(root, file)
-            if file_path not in files_checked:
-                new_files = True
-                calculated_hash = create_hash(file_path)
-                print(f"'{file_path}' -> '{calculated_hash}' : New File")
-                number_new_files += 1
+#     new_files = False
+#     for root, _, files in os.walk(directory_path):
+#         for file in files:
+#             file_path = os.path.join(root, file)
+#             if file_path not in files_checked:
+#                 new_files = True
+#                 calculated_hash = create_hash(file_path)
+#                 print(f"'{file_path}' -> '{calculated_hash}' : New File")
+#                 number_new_files += 1
 
-    if not files_checked:
-        print('No files checked')
+#     if not files_checked:
+#         print('No files checked')
 
-    if not new_files:
-        print('No new files found')
+#     if not new_files:
+#         print('No new files found')
 
-    sys.stdout.flush()
-    connection.close()
+#     sys.stdout.flush()
+#     connection.close()
 
-    return {
-        'number_new_files': number_new_files,
-        'number_deleted_files': number_deleted_files,
-        'number_bad_files': number_bad_files,
-        'number_ok_files': number_ok_files,
-        'number_unknown_files': number_unknown_files
-    }
+#     return {
+#         'number_new_files': number_new_files,
+#         'number_deleted_files': number_deleted_files,
+#         'number_bad_files': number_bad_files,
+#         'number_ok_files': number_ok_files,
+#         'number_unknown_files': number_unknown_files
+#     }
 
 
 def compare_databases(db1_path: str, db2_path: str) -> dict:
@@ -276,35 +278,24 @@ if __name__ == '__main__':
         # get extension
         _, extension = os.path.splitext(data_save_path)
 
+        # TODO turn this into a function
         if extension == '.sqlite3':
             connection = sqlite3.connect(data_save_path)
             cursor = connection.cursor()
-            cursor.execute('SELECT calculated_hash FROM hashes')
-            hashes = cursor.fetchall()
+            cursor.execute('SELECT COUNT(*) FROM hashes')
+            num_files = cursor.fetchone()[0]
             cursor.execute('SELECT working_directory FROM attributes')
             working_directory = cursor.fetchone()[0]
             connection.close()
 
-            data_summary = check_data_integrity_db(working_directory, data_save_path)
+            with tempfile.TemporaryDirectory() as temp_dir_path:
+                database_path, _ = create_hash_db(working_directory, temp_dir_path)
+                data_summary = compare_databases(data_save_path, database_path)
         else:
             print('Invalid File Detected')
             sys.exit()
 
-        summary_msg = f"Summary [{working_directory}]"
-        print(f"""
-              
-        {summary_msg}
-        {'-' * len(summary_msg)}
-            {len(hashes)} Total Files Checked:
-
-            New: {data_summary['number_new_files']:>5}
-            Deleted: {data_summary['number_deleted_files']:>5}
-            Bad: {data_summary['number_bad_files']:>5}
-            OK: {data_summary['number_ok_files']:>5}
-            Unknown: {data_summary['number_unknown_files']:>5}
-        """)
-
-        # TODO add option to save summary to a text file
+        # TODO select summary function
 
     elif main_option_selected == '3':
         print('Select first Hash Database')
@@ -317,6 +308,7 @@ if __name__ == '__main__':
 
         summary = compare_databases(db1_path, db2_path)
 
+        # TODO Move summary into its own function
         summary_msg = f"Summary [{db1_path} and {db2_path}]"
         print(f"""
         {summary_msg}
