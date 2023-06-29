@@ -109,6 +109,7 @@ def create_hash_db(directory_path: str, data_save_path: str) -> int:
             cursor.executemany('INSERT OR REPLACE INTO hashes (file_path, calculated_hash) VALUES (?, ?)', batch_data)
             print(f"Processed {len(batch_data)} files")
 
+    sys.stdout.flush()
     connection.commit()
     connection.close()
 
@@ -179,6 +180,7 @@ def check_data_integrity_db(directory_path: str, data_save_path: str) -> dict:
     if not new_files:
         print('No new files found')
 
+    sys.stdout.flush()
     connection.close()
 
     return {
@@ -219,7 +221,7 @@ def compare_databases(db1_path: str, db2_path: str) -> dict:
     print('\nUnique files in the second database:')
     unique_files_db2 = set(db2_files.keys()) - set(db1_files.keys())
 
-
+    sys.stdout.flush()
     connection1.close()
     connection2.close()
 
