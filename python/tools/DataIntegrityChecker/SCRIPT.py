@@ -202,23 +202,25 @@ def create_hash_db(hash_dir_path: str, db_save_path: str) -> int:
     cursor.execute('INSERT OR REPLACE INTO attributes (working_directory) VALUES (?)', (hash_dir_path,))
 
     # Batch size for parameterized queries
-    # TODO Use timer instead of batch size
-    batch_size = 1000
+    max_time_per_batch = 3  # seconds
     batch_data = []
 
     print('\nCreating Hashes...\n')
 
     # Create a pool, default number of processes is the number of cores on the machine
     with Pool() as pool:
+        start_time = time.time()  # Start timer
         for root, _, files in os.walk(hash_dir_path):
             file_paths = [os.path.join(root, file) for file in files]
             results = pool.map(create_hash, file_paths)  # Use workers to create hashes
             batch_data.extend(results)
 
-            if len(batch_data) >= batch_size:  # If batch size is reached, insert data into the database
+            elapsed_time = time.time() - start_time
+            if elapsed_time >= max_time_per_batch and batch_data:  # If the max time per batch has been reached and there are files to be inserted
                 cursor.executemany('INSERT OR REPLACE INTO hashes (file_path, calculated_hash) VALUES (?, ?)', batch_data)
                 print(f"Processed {len(batch_data)} files")
                 batch_data = []
+                start_time = time.time()
 
         if batch_data:  # If there are any remaining files to be inserted
             cursor.executemany('INSERT OR REPLACE INTO hashes (file_path, calculated_hash) VALUES (?, ?)', batch_data)
