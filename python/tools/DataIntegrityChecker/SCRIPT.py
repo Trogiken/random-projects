@@ -309,6 +309,10 @@ if __name__ == '__main__':
     app = QApplication([])
 
     print("""
+        Data Integrity Checker
+        ----------------------
+        For improved processing speed, turn off real-time protection in your antivirus software.
+
         Options:
         1. Create Hash Database
             - Create a hash database from a directory
