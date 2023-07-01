@@ -50,6 +50,21 @@ def ask_savefile(name_filter: str, title: str='Select a Save Location') -> str:
         print('Canceled')
         sys.exit()
 
+def ask_save_summary_dialog(summary: dict) -> None:
+    print('\nSave summary to a json file? (y/n)')
+    save_summary = input('Enter option: ')
+    if save_summary.casefold() == 'y':
+        print('Select a location to save the summary')
+        summary_save_path = ask_savefile('JSON (*.json)')
+        print(f'Selected Save Directory: {summary_save_path}')
+
+        print('Saving Summary...')
+        save_path = save_json(summary, summary_save_path)
+        print(f"Summary saved to '{save_path}'")
+    else:
+        print('Canceled')
+        sys.exit()
+
 
 def save_json(summary: dict, save_path: str) -> str:
     """Save a summary to a json file. Return the save path."""
@@ -349,8 +364,7 @@ if __name__ == '__main__':
             summary = compare_databases(selected_db_path, database_path)
 
         display_summary(summary)
-        
-        # TODO Save summary to a json file option
+        ask_save_summary_dialog(summary)
 
     elif main_option_selected == '3':
         print('Select First Hash Database')
@@ -367,20 +381,8 @@ if __name__ == '__main__':
 
         summary = compare_databases(db1_path, db2_path)
         display_summary(summary)
+        ask_save_summary_dialog(summary)
 
-        print('Save summary to a json file? (y/n)')
-        save_summary = input('Enter option: ')
-        if save_summary.casefold() == 'y':
-            print('Select a location to save the summary')
-            summary_save_path = ask_savefile('JSON (*.json)')
-            print(f'Selected Save Directory: {summary_save_path}')
-
-            print('Saving Summary...')
-            save_path = save_json(summary, summary_save_path)
-            print(f"Summary saved to '{save_path}'")
-        else:
-            print('Canceled')
-            sys.exit()
     else:
         print('Invalid Option Selected')
         sys.exit()
