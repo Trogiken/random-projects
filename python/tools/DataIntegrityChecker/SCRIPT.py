@@ -10,12 +10,12 @@ from multiprocessing import Pool
 from PyQt6.QtWidgets import QApplication, QFileDialog
 
 
-def ask_filelocation(name_filter: str, title: str='Select Hash Database') -> str:
+def ask_filelocation(filter: str, title: str='Select Hash Database') -> str:
     """Return the file path of the file selected."""
     file_dialog = QFileDialog()
     file_dialog.setWindowTitle(title)
     file_dialog.setFileMode(QFileDialog.FileMode.AnyFile)
-    file_dialog.setNameFilter(name_filter)
+    file_dialog.setNameFilter(filter)
 
     if file_dialog.exec():
         return file_dialog.selectedFiles()[0]
@@ -36,13 +36,13 @@ def ask_directory(title: str='Select a Directory') -> str:
         print('Canceled')
         sys.exit()
 
-def ask_savefile(name_filter: str, title: str='Select a Save Location') -> str:
+def ask_savefile(filter: str, title: str='Select a Save Location') -> str:
     """Return the file path of the file selected for saving."""
     file_dialog = QFileDialog()
     file_dialog.setWindowTitle(title)
     file_dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)  # Set the dialog mode to Save
     file_dialog.setFileMode(QFileDialog.FileMode.AnyFile)
-    file_dialog.setNameFilter(name_filter)
+    file_dialog.setNameFilter(filter)
 
     if file_dialog.exec():
         return file_dialog.selectedFiles()[0]
