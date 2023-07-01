@@ -1,15 +1,16 @@
 import os
 import sys
+import tempfile
 import hashlib
 import sqlite3
+import time
 import json
-import tempfile
 from typing import Tuple
 from multiprocessing import Pool
 from PyQt6.QtWidgets import QApplication, QFileDialog
 
 
-def ask_filelocation(title: str, name_filter: str) -> str:
+def ask_filelocation(name_filter: str, title: str='Select Hash Database') -> str:
     """Return the file path of the file selected."""
     file_dialog = QFileDialog()
     file_dialog.setWindowTitle(title)
@@ -23,7 +24,7 @@ def ask_filelocation(title: str, name_filter: str) -> str:
         sys.exit()
 
 
-def ask_directory(title: str) -> str:
+def ask_directory(title: str='Select a Directory') -> str:
     """Return the directory path of the directory selected."""
     directory_dialog = QFileDialog()
     directory_dialog.setWindowTitle(title)
@@ -34,6 +35,119 @@ def ask_directory(title: str) -> str:
     else:
         print('Canceled')
         sys.exit()
+
+def ask_savefile(name_filter: str, title: str='Select a Save Location') -> str:
+    """Return the file path of the file selected for saving."""
+    file_dialog = QFileDialog()
+    file_dialog.setWindowTitle(title)
+    file_dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)  # Set the dialog mode to Save
+    file_dialog.setFileMode(QFileDialog.FileMode.AnyFile)
+    file_dialog.setNameFilter(name_filter)
+
+    if file_dialog.exec():
+        return file_dialog.selectedFiles()[0]
+    else:
+        print('Canceled')
+        sys.exit()
+
+
+def save_json(summary: dict, save_path: str) -> str:
+    """Save a summary to a json file. Return the save path."""
+
+    # change set to a list so that it can be serialized to json
+    if not summary['common_files']:
+        summary['common_files'] = []
+    else:
+        summary['common_files'] = list(summary['common_files'])
+    if not summary['unique_files_db1']:
+        summary['unique_files_db1'] = []
+    else:
+        summary['unique_files_db1'] = list(summary['unique_files_db1'])
+    if not summary['unique_files_db2']:
+        summary['unique_files_db2'] = []
+    else:
+        summary['unique_files_db2'] = list(summary['unique_files_db2'])
+    if not summary['ok_files']:  # Already list
+        summary['ok_files'] = []
+    if not summary['bad_files']:  # Already list
+        summary['bad_files'] = []
+    if not summary['unknown']:  # Already list
+        summary['unknown'] = []
+
+    # create json format
+    json_save = {
+        'summary': {
+            'number_common_files': summary['number_common_files'],
+            'number_unique_files_db1': summary['number_unique_files_db1'],
+            'number_unique_files_db2': summary['number_unique_files_db2'],
+            'number_ok_files': summary['number_ok_files'],
+            'number_bad_files': summary['number_bad_files'],
+            },
+        'details': {
+            'common_files': summary['common_files'],
+            'unique_files_db1': summary['unique_files_db1'],
+            'unique_files_db2': summary['unique_files_db2'],
+            'ok_files': summary['ok_files'],
+            'bad_files': summary['bad_files'],
+            'unknown': summary['unknown'],
+            }
+        }
+    
+    # write summary to json file
+    with open(save_path, 'w') as file:
+        json.dump(json_save, file, indent=4)
+    
+    return save_path
+
+def display_summary(summary: dict) -> None:
+    """Display a summary of the comparison."""
+    db1 = os.path.basename(summary['db1_path'])
+    db2 = os.path.basename(summary['db2_path'])
+
+    type_column = [
+        "Type:",
+        "Common Files",
+        f"Unique Files in {db1}",
+        f"Unique Files in {db2}",
+        "Ok Files in Common",
+        "Bad Files in Common",
+        "Unknown Files in Common"
+    ]
+    number_column = [
+        "Number:",
+        str(summary['number_common_files']),
+        str(summary['number_unique_files_db1']),
+        str(summary['number_unique_files_db2']),
+        str(summary['number_ok_files']),
+        str(summary['number_bad_files']),
+        str(summary['number_unknown_files'])
+    ]
+
+    type_column_width = max(len(type_item) for type_item in type_column)
+    number_column_width = max(len(number_item) for number_item in number_column)
+    total_length = type_column_width + 2 + number_column_width + 2  # 2 spaces between columns
+
+    print(f"\n{'Summary':^{total_length}}")  # Centered
+    print(f"{'-' * total_length}")
+
+    for type_item, number_item in zip(type_column, number_column):  # Print columns side by side
+        print(f"{type_item:<{type_column_width}}  {number_item}")
+
+
+
+
+def is_database_valid(db_path: str) -> bool:
+    """Check if the database is valid. Return True if valid, False if not."""
+    try:
+        connection = sqlite3.connect(db_path)
+        cursor = connection.cursor()
+        cursor.execute('SELECT COUNT(*) FROM hashes')
+        cursor.execute('SELECT working_directory FROM attributes')
+        connection.close()
+        return True
+    except BaseException as error:
+        print(f"Invalid database! | {error}")
+        return False
 
 
 def create_hash(file_path: str) -> Tuple[str, str]:
@@ -61,18 +175,18 @@ def create_hash(file_path: str) -> Tuple[str, str]:
         return file_path, '?'
 
 
-def create_hash_db(directory_path: str, data_save_path: str) -> int:
-    # TODO allow the renaming of the database
-    if os.path.exists(data_save_path):
-        print(f"\nHash database already exists at '{data_save_path}'\nDelete it? (y/n)\n")
+def create_hash_db(hash_dir_path: str, db_save_path: str) -> int:
+    """Create a hash database from a directory path and save it to a file path. Return the file path and number of files hashed."""
+    if os.path.exists(db_save_path):
+        print(f"\nHash database already exists at '{db_save_path}'\nDelete it? (y/n)\n")
         delete_database = input('Enter option: ')
         if delete_database.casefold() == 'y':
-            os.remove(data_save_path)
+            os.remove(db_save_path)
         else:
             print('Canceled')
             sys.exit()
 
-    connection = sqlite3.connect(data_save_path)
+    connection = sqlite3.connect(db_save_path)
     cursor = connection.cursor()
 
     # Create table for hashes
@@ -82,30 +196,29 @@ def create_hash_db(directory_path: str, data_save_path: str) -> int:
                     )''')
     # create attribute table
     cursor.execute('''CREATE TABLE IF NOT EXISTS attributes (
-                        working_directory TEXT PRIMARY KEY,
-                        path TEXT
+                        working_directory TEXT PRIMARY KEY
                     )''')
     # Insert working directory into the table
-    cursor.execute('INSERT OR REPLACE INTO attributes (working_directory) VALUES (?)', (directory_path,))
+    cursor.execute('INSERT OR REPLACE INTO attributes (working_directory) VALUES (?)', (hash_dir_path,))
 
     # Batch size for parameterized queries
+    # TODO Use timer instead of batch size
     batch_size = 1000
     batch_data = []
 
     print('\nCreating Hashes...\n')
 
-    # BUG processed file messages don't add up to total files hashed
+    # Create a pool, default number of processes is the number of cores on the machine
     with Pool() as pool:
-        for root, _, files in os.walk(directory_path):
+        for root, _, files in os.walk(hash_dir_path):
             file_paths = [os.path.join(root, file) for file in files]
-            results = pool.map(create_hash, file_paths)
+            results = pool.map(create_hash, file_paths)  # Use workers to create hashes
             batch_data.extend(results)
 
             if len(batch_data) >= batch_size:  # If batch size is reached, insert data into the database
-                cursor.executemany('INSERT OR REPLACE INTO hashes (file_path, calculated_hash) VALUES (?, ?)',
-                                   batch_data)
+                cursor.executemany('INSERT OR REPLACE INTO hashes (file_path, calculated_hash) VALUES (?, ?)', batch_data)
+                print(f"Processed {len(batch_data)} files")
                 batch_data = []
-                print(f"Processed {len(results)} files")
 
         if batch_data:  # If there are any remaining files to be inserted
             cursor.executemany('INSERT OR REPLACE INTO hashes (file_path, calculated_hash) VALUES (?, ?)', batch_data)
@@ -115,83 +228,13 @@ def create_hash_db(directory_path: str, data_save_path: str) -> int:
     connection.commit()
     connection.close()
 
-    connection = sqlite3.connect(data_save_path)
+    connection = sqlite3.connect(db_save_path)
     cursor = connection.cursor()
     cursor.execute('SELECT COUNT(*) FROM hashes')
     num_files = cursor.fetchone()[0]
     connection.close()
 
-    return data_save_path, num_files
-
-
-# def check_data_integrity_db(directory_path: str, data_save_path: str) -> dict:
-#     """Utilizing the hash database, check data integrity of files in a directory and subdirectories,
-#     and return a summary of the results."""
-
-#     # TODO merge this function with create_hash_db
-
-#     connection = sqlite3.connect(data_save_path)
-#     cursor = connection.cursor()
-
-#     print('\nChecking for Data Integrity...\n')
-
-#     number_new_files = 0
-#     number_deleted_files = 0
-#     number_bad_files = 0
-#     number_ok_files = 0
-#     number_unknown_files = 0
-
-#     files_checked = set()
-#     for row in cursor.execute('SELECT file_path, calculated_hash FROM hashes'):
-#         files_checked.add(row[0])
-#         file_path = row[0]
-#         file_hash = row[1]
-
-#         if not os.path.exists(file_path):
-#             print(f"'{file_path}' -> '{file_hash}' : Deleted")
-#             number_deleted_files += 1
-#             continue
-
-#         _, calculated_hash = create_hash(file_path)
-
-#         if file_hash == '?':
-#             print(f"'{file_path}' : ?")
-#             number_unknown_files += 1
-#         elif file_hash == calculated_hash:
-#             print(f"'{file_path}' -> '{file_hash}' : Ok")
-#             number_ok_files += 1
-#         else:
-#             print(f"'{file_path}' -> '{file_hash}' != '{calculated_hash}' : Bad")
-#             number_bad_files += 1
-
-#     print('\nChecking for new files...\n')
-
-#     new_files = False
-#     for root, _, files in os.walk(directory_path):
-#         for file in files:
-#             file_path = os.path.join(root, file)
-#             if file_path not in files_checked:
-#                 new_files = True
-#                 calculated_hash = create_hash(file_path)
-#                 print(f"'{file_path}' -> '{calculated_hash}' : New File")
-#                 number_new_files += 1
-
-#     if not files_checked:
-#         print('No files checked')
-
-#     if not new_files:
-#         print('No new files found')
-
-#     sys.stdout.flush()
-#     connection.close()
-
-#     return {
-#         'number_new_files': number_new_files,
-#         'number_deleted_files': number_deleted_files,
-#         'number_bad_files': number_bad_files,
-#         'number_ok_files': number_ok_files,
-#         'number_unknown_files': number_unknown_files
-#     }
+    return db_save_path, num_files
 
 
 def compare_databases(db1_path: str, db2_path: str) -> dict:
@@ -217,10 +260,10 @@ def compare_databases(db1_path: str, db2_path: str) -> dict:
     bad_files = [(file_path, db1_files[file_path], db2_files[file_path]) for file_path in common_files if db1_files[file_path] != db2_files[file_path]]
     unknown = [file_path for file_path in common_files if db1_files[file_path] == '?' or db2_files[file_path] == '?']
 
-    print('\nUnique files in the first database:')
+    print('\nUnique files in the first database...')
     unique_files_db1 = set(db1_files.keys()) - set(db2_files.keys())
 
-    print('\nUnique files in the second database:')
+    print('\nUnique files in the second database...')
     unique_files_db2 = set(db2_files.keys()) - set(db1_files.keys())
 
     sys.stdout.flush()
@@ -228,6 +271,9 @@ def compare_databases(db1_path: str, db2_path: str) -> dict:
     connection2.close()
 
     summary = {
+        'db1_path': db1_path,
+        'db2_path': db2_path,
+
         'number_common_files': len(common_files),
         'number_unique_files_db1': len(unique_files_db1),
         'number_unique_files_db2': len(unique_files_db2),
@@ -251,8 +297,12 @@ if __name__ == '__main__':
     print("""
         Options:
         1. Create Hash Database
+            - Create a hash database from a directory
         2. Check Data Integrity
+            - Automatically creates a temporary database to compare it against the selected hash database.
+              Temporary database is created based on what directory was selected to create the hash database.
         3. Compare Databases
+            - Compare two hash databases
     """)
 
     main_option_selected = input('Enter option: ')
@@ -263,112 +313,69 @@ if __name__ == '__main__':
         print(f'Selected hash directory: {directory_path}')
 
         print('Select a location to store the hash database')
-        data_save_path = ask_directory('Select a Save Directory')
-        print(f'Selected save directory: {data_save_path}')
+        db_save_path = ask_savefile('SQLite3 (*.sqlite3)')
+        print(f'Selected Save Path: {db_save_path}')
 
-        data_save_path = os.path.join(data_save_path, 'hash_data.sqlite3')
-        number_files = create_hash_db(directory_path, data_save_path)
+        save_path, number_files = create_hash_db(directory_path, db_save_path)
 
-        print(f"DONE!\n{number_files} Files Hashed\nHash database saved to '{data_save_path}'")
+        print(f"DONE!\n{number_files} Files Hashed\nHash database saved to '{save_path}'")
     elif main_option_selected == '2':
         print('Select Hash Database')
-        data_save_path = ask_filelocation('Select Hash Database', 'SQLite3 (*.sqlite3)')
-        print(f'Selected hash database: {data_save_path}')
+        selected_db_path = ask_filelocation('SQLite3 (*.sqlite3)')
+        print(f'Selected Hash Database: {selected_db_path}')
 
-        # get extension
-        _, extension = os.path.splitext(data_save_path)
+        if not is_database_valid(selected_db_path):
+            print('Invalid File Detected')
+            sys.exit()
+        
+        connection = sqlite3.connect(selected_db_path)
+        cursor = connection.cursor()
+        cursor.execute('SELECT COUNT(*) FROM hashes')
+        num_files = cursor.fetchone()[0]
+        cursor.execute('SELECT working_directory FROM attributes')
+        working_directory = cursor.fetchone()[0]
+        connection.close()
 
-        # TODO turn this into a function
-        if extension == '.sqlite3':
-            connection = sqlite3.connect(data_save_path)
-            cursor = connection.cursor()
-            cursor.execute('SELECT COUNT(*) FROM hashes')
-            num_files = cursor.fetchone()[0]
-            cursor.execute('SELECT working_directory FROM attributes')
-            working_directory = cursor.fetchone()[0]
-            connection.close()
+        with tempfile.TemporaryDirectory() as temp_dir_path:
+            print()
+            print(f"Temporary Directory Created: '{temp_dir_path}'")
+            print(f"Hashing From: '{working_directory}'")
+            temp_db = os.path.join(temp_dir_path, f'temp-db.sqlite3')
+            print(f"Temporary DB: '{temp_db}'")
 
-            with tempfile.TemporaryDirectory() as temp_dir_path:
-                database_path, _ = create_hash_db(working_directory, temp_dir_path)
-                data_summary = compare_databases(data_save_path, database_path)
-        else:
+            database_path, _ = create_hash_db(working_directory, temp_db)
+            summary = compare_databases(selected_db_path, database_path)
+
+        display_summary(summary)
+        
+        # TODO Save summary to a json file option
+
+    elif main_option_selected == '3':
+        print('Select First Hash Database')
+        db1_path = ask_filelocation(title='Select First Hash Database', filter='SQLite3 (*.sqlite3)')
+        print(f'First Hash Database: {db1_path}')
+
+        print('Select Second Hash Database')
+        db2_path = ask_filelocation(title='Select Second Hash Database', filter='SQLite3 (*.sqlite3)')
+        print(f'Second Hash Database: {db2_path}')
+
+        if not is_database_valid(db1_path) and is_database_valid(db2_path):
             print('Invalid File Detected')
             sys.exit()
 
-        # TODO select summary function
-
-    elif main_option_selected == '3':
-        print('Select first Hash Database')
-        db1_path = ask_filelocation('Select First Hash Database', 'SQLite3 (*.sqlite3)')
-        print(f'Selected first hash database: {db1_path}')
-
-        print('Select second Hash Database')
-        db2_path = ask_filelocation('Select Second Hash Database', 'SQLite3 (*.sqlite3)')
-        print(f'Selected second hash database: {db2_path}')
-
         summary = compare_databases(db1_path, db2_path)
-
-        # TODO Move summary into its own function
-        summary_msg = f"Summary [{db1_path} and {db2_path}]"
-        print(f"""
-        {summary_msg}
-        {'-' * len(summary_msg)}
-            Totals:
-            Common Files: {summary['number_common_files']:>5}
-            Unique Files in {db1_path}: {summary['number_unique_files_db1']:>5}
-            Unique Files in {db2_path}: {summary['number_unique_files_db2']:>5}
-            Ok Files in Common: {summary['number_ok_files']:>5}
-            Bad Files in Common: {summary['number_bad_files']:>5}
-            Unknown Files in Common: {summary['number_unknown_files']:>5}
-        """)
+        display_summary(summary)
 
         print('Save summary to a json file? (y/n)')
-
-        # change set to a list so that it can be serialized to json
-        if not summary['common_files']:
-            summary['common_files'] = []
-        else:
-            summary['common_files'] = list(summary['common_files'])
-        if not summary['unique_files_db1']:
-            summary['unique_files_db1'] = []
-        else:
-            summary['unique_files_db1'] = list(summary['unique_files_db1'])
-        if not summary['unique_files_db2']:
-            summary['unique_files_db2'] = []
-        else:
-            summary['unique_files_db2'] = list(summary['unique_files_db2'])
-        if not summary['ok_files']:  # Already list
-            summary['ok_files'] = []
-        if not summary['bad_files']:  # Already list
-            summary['bad_files'] = []
-
         save_summary = input('Enter option: ')
         if save_summary.casefold() == 'y':
             print('Select a location to save the summary')
-            summary_save_path = ask_directory('Select a Save Directory')
-            print(f'Selected save directory: {summary_save_path}')
+            summary_save_path = ask_savefile('JSON (*.json)')
+            print(f'Selected Save Directory: {summary_save_path}')
 
             print('Saving Summary...')
-            summary_save_path = os.path.join(summary_save_path, 'summary.json')
-            json_save = {
-                'summary': {
-                    'number_common_files': summary['number_common_files'],
-                    'number_unique_files_db1': summary['number_unique_files_db1'],
-                    'number_unique_files_db2': summary['number_unique_files_db2'],
-                    'number_ok_files': summary['number_ok_files'],
-                    'number_bad_files': summary['number_bad_files'],
-                },
-                'common_files': summary['common_files'],
-                'unique_files_db1': summary['unique_files_db1'],
-                'unique_files_db2': summary['unique_files_db2'],
-                'ok_files': summary['ok_files'],
-                'bad_files': summary['bad_files'],
-                'unknown': summary['unknown'],
-            }
-            # write summary to json format
-            with open(summary_save_path, 'w') as file:
-                json.dump(json_save, file, indent=4)
-            print(f"Summary saved to '{summary_save_path}'")
+            save_path = save_json(summary, summary_save_path)
+            print(f"Summary saved to '{save_path}'")
         else:
             print('Canceled')
             sys.exit()
