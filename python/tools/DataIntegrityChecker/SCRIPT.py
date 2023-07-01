@@ -185,7 +185,7 @@ def create_hash(file_path: str) -> Tuple[str, str]:
         file_hash = hasher.hexdigest()
         return file_path, file_hash
     except BaseException as error:
-        print(f"Failed to create hash! | {error}\nReplacing hash with '?'")
+        print(f"Failed to create hash! | {error}")
         return file_path, '?'
 
 
