@@ -97,6 +97,7 @@ def save_json(summary: dict, save_path: str) -> str:
             'number_unique_files_db2': summary['number_unique_files_db2'],
             'number_ok_files': summary['number_ok_files'],
             'number_bad_files': summary['number_bad_files'],
+            'number_unknown_files': summary['number_unknown_files'],
             },
         'details': {
             'common_files': summary['common_files'],
