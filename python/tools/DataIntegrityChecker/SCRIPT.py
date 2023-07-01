@@ -149,8 +149,6 @@ def display_summary(summary: dict) -> None:
         print(f"{type_item:<{type_column_width}}  {number_item}")
 
 
-
-
 def is_database_valid(db_path: str) -> bool:
     """Check if the database is valid. Return True if valid, False if not."""
     try:
@@ -268,20 +266,18 @@ def compare_databases(db1_path: str, db2_path: str) -> dict:
     cursor2.execute('SELECT file_path, calculated_hash FROM hashes')
     db2_files = {row[0]: row[1] for row in cursor2.fetchall()}
 
-
-    print(f"\nCommon files in both databases...")
+    print('\nScanning Databases...\n')
+    print(f"Common files...")
     common_files = set(db1_files.keys()) & set(db2_files.keys())
+    print('Unique files in the first database...')
+    unique_files_db1 = set(db1_files.keys()) - set(db2_files.keys())
+    print('Unique files in the second database...')
+    unique_files_db2 = set(db2_files.keys()) - set(db1_files.keys())
 
-    print('\nComparing hashes...')
+    print('Comparing hashes...')
     ok_files = [(file_path, db1_files[file_path]) for file_path in common_files if db1_files[file_path] == db2_files[file_path]]
     bad_files = [(file_path, db1_files[file_path], db2_files[file_path]) for file_path in common_files if db1_files[file_path] != db2_files[file_path]]
     unknown = [file_path for file_path in common_files if db1_files[file_path] == '?' or db2_files[file_path] == '?']
-
-    print('\nUnique files in the first database...')
-    unique_files_db1 = set(db1_files.keys()) - set(db2_files.keys())
-
-    print('\nUnique files in the second database...')
-    unique_files_db2 = set(db2_files.keys()) - set(db1_files.keys())
 
     sys.stdout.flush()
     connection1.close()
