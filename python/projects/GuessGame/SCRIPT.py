@@ -1,10 +1,10 @@
 import random
 
 category_list = {
-    "Trips": ['camper', 'drive', 'night'],
-    "Body": ['penis', 'pussy'],
-    "Summer": ['sun', 'sand', 'water', 'shades'],
-    "Animals": ['dog', 'cat', 'bird', 'fish'],
+    "Trips": ['camper', 'drive', 'night', 'snacks', 'tent', 'bike', 'fire'],
+    "Body": ['arm', 'leg', 'finger', 'nose', 'head', 'eye', 'ear'],
+    "Summer": ['sun', 'sand', 'water', 'shades', 'swim', 'hot', 'beach'],
+    "Animals": ['dog', 'cat', 'bird', 'fish', 'horse', 'snake', 'turtle'],
     }
 
 
