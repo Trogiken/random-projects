@@ -30,10 +30,10 @@ while __name__ == '__main__':
         """)
 
         if max_tries == 0:
-            print('You Won!')
+            print('You Lost!')
             break
         if [letter for letter in rdm_word] == current_word_state:
-            print('You Lost!')
+            print('You Won!')
             break
 
         letter_selected = input('> ').casefold()
