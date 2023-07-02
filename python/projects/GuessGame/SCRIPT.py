@@ -52,5 +52,5 @@ while __name__ == '__main__':
         print('You Lost!')
 
     play_again = input('Play Again? (y/n): ').casefold()
-    if play_again == 'y':
-        continue
+    if not play_again == 'y':
+        break
