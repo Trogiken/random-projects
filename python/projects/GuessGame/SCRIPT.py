@@ -8,10 +8,21 @@ category_list = {
     }
 
 
+def shuffle(lst: list, x: int):
+    iterator = 1
+    while iterator < x:
+        random.shuffle(lst)
+        iterator += 1
+
+
 while __name__ == '__main__':
-    rdm_category = random.sample(population=list(category_list.keys()), k=1)[0]
-    word_list = category_list.get(rdm_category)
-    rdm_word = word_list[random.randint(0, len(word_list)-1)].casefold()
+    categorys = list(category_list.keys())  # Makle list of keys
+    shuffle(categorys, 5)  # Shuffle keys
+    rdm_category = random.sample(population=categorys, k=1)[0]  # Get random key
+    word_list = category_list.get(rdm_category)  # Get list from key
+    shuffle(word_list, 5)  # Shuffle list
+    rdm_word = word_list[random.randint(0, len(word_list)-1)]  # Get random word from list by index
+    
     wrong_letters_guessed = []
     correct_letters_guessed = {}
     current_word_state = ['_' for _ in rdm_word]
@@ -26,7 +37,7 @@ while __name__ == '__main__':
         Tries Left: {max_tries}
         Category: {rdm_category.capitalize()}
 
-        {display_word}
+        {display_word.capitalize()}
         """)
 
         if max_tries == 0:
@@ -36,9 +47,9 @@ while __name__ == '__main__':
             print('You Won!')
             break
 
-        letter_selected = input('> ').casefold()
+        letter_selected = input('> ')
 
-        if not letter_selected in rdm_word:
+        if not letter_selected.casefold() in rdm_word.casefold():
             wrong_letters_guessed.append(letter_selected)
             max_tries -= 1
         else:
