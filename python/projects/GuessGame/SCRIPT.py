@@ -17,7 +17,6 @@ while __name__ == '__main__':
     current_word_state = ['_' for _ in rdm_word]
     max_tries = 2 * len(rdm_word)
 
-    win = True
     while True:
         display_word = ''
         for letter in current_word_state:
@@ -31,9 +30,10 @@ while __name__ == '__main__':
         """)
 
         if max_tries == 0:
-            win = False
+            print('You Won!')
             break
         if [letter for letter in rdm_word] == current_word_state:
+            print('You Lost!')
             break
 
         letter_selected = input('> ').casefold()
@@ -45,11 +45,6 @@ while __name__ == '__main__':
             for index, letter in enumerate(rdm_word):
                 if letter_selected == letter:
                     current_word_state[index] = letter_selected
-                
-    if win:
-        print('You Won!')
-    else:
-        print('You Lost!')
 
     play_again = input('Play Again? (y/n): ').casefold()
     if not play_again == 'y':
