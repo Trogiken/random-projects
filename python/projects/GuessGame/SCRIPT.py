@@ -25,7 +25,7 @@ while __name__ == '__main__':
 
         print(f"""
         Tries Left: {max_tries}
-        Category: {rdm_category}
+        Category: {rdm_category.capitalize()}
 
         {display_word}
         """)
