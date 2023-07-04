@@ -134,3 +134,6 @@ dmypy.json
 
 # System Files
 .DS_Store
+
+# Executable
+*.exe
