@@ -31,6 +31,7 @@ void printData(const std::string& name, int age) {  // & means that the variable
 int main() {
     std::cout << "\nRunning Program...\n" << std::endl;
 
+
     // get data from user
     std::string name;
     int age;
@@ -44,8 +45,8 @@ int main() {
 
     std::cout << "\nSum of 5 and 6 = " << sum(5, 6) << std::endl;
 
-    std::cout << "\nProgram Complete." << std::endl;
 
+    std::cout << "\nProgram Complete." << std::endl;
     // keep console window open
     std::cin.clear();  // reset any error flags
     std::cin.ignore(32767, '\n');  // ignore any characters in the input buffer until we find an enter character
