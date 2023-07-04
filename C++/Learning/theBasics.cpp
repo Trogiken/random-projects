@@ -9,6 +9,9 @@ char d = 'a'; // char is a single character
 std::string e = "Hello World!"; // string is a collection of characters
 bool f = true; // bool is a boolean value (true or false)
 
+// NOTE
+// use single quotes for chars and double quotes for strings
+
 static int g = 2; // static variables are only accessible in the file they are declared in
 const int h = 3; // const variables cannot be changed
 
