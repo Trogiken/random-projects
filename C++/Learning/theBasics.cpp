@@ -24,6 +24,7 @@ int sum(int a, int b) {
 // create dummy function with parameters but doesn't return anything
 void printData(const std::string& name, const int age) {    // '&' means that the variable is passed by reference (not copied)
                                                             // Do this for large objects to avoid copying the entire object
+                                                            // int age doesnt need to be passed by reference because it is a primitive type
                                                             // const is used because we don't want to change the value of the variable, good practice
     std::cout << "\nThis is a dummy function with parameters..." << std::endl;
     std::cout << "Hello " << name << ", you are " << age << " years old." << std::endl;
