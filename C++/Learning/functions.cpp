@@ -3,7 +3,7 @@
 // Void functions do not return a value
 void sayHi(std::string name, int age); // Function prototype, Like declaring a variable without a value (Not needed if function is defined before main())
 
-// Int functions return a value
+// Int, float, double specifies the return type of the function
 int cube(int num) {
     int result = num * num * num;
     return result;
