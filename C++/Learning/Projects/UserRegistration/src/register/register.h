@@ -11,6 +11,7 @@ class Register {
         std::string phoneNumber;
 
     public:
+        Register();
         Register(std::string aUsername, std::string aPassword, std::string aEmail, std::string aPhoneNumber);
         
         std::string getUsername();

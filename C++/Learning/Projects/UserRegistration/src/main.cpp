@@ -12,11 +12,11 @@
 #include "register/register.h"
 
 /*
-    Ask user if they want to login or register.
-    User input is a number, 1 or 2.
-    1 = login
-    2 = register
-    Returns a string, either "login" or "register".
+    * Function: AskLoginorRegister
+    * Usage: std::string loginOrRegister = AskLoginorRegister();
+    * ----------------------------------------------------------
+    * Asks the user if they would like to login or register.
+    * Returns "login" or "register".
 */
 std::string AskLoginorRegister() {
     std::string loginOrRegister = "";
@@ -33,22 +33,21 @@ std::string AskLoginorRegister() {
         std::cout << std::endl;
     }
 
-    if (loginOrRegister == "1") {
-        return "login";
-    } else {
-        return "register";
-    }
+    return loginOrRegister;
 }
 
 /*
-    Ask user for username, password, and email.
-    Returns a Register object.
+    * Function: RegisterUser
+    * Usage: Register user = RegisterUser();
+    * ---------------------------------------
+    * Asks the user for their username, password, email, and phone number.
+    * Returns a Register object.
 */
 Register RegisterUser() {
-    std::string username = "";
-    std::string password = "";
-    std::string email = "";
-    std::string phoneNumber = "";
+    std::string username;
+    std::string password;
+    std::string email;
+    std::string phoneNumber;
 
     std::cout << "Enter username: ";
     std::cin >> username;
@@ -66,22 +65,32 @@ Register RegisterUser() {
     std::cin >> phoneNumber;
     std::cout << std::endl;
 
-    Register user(username, password, email, phoneNumber);
-    return user;
+    try {
+        return Register(username, password, email, phoneNumber);
+    } catch (const std::exception& e) {
+        std::cout << "Error: " << e.what() << std::endl;
+        return Register();
+    }
 }
 
-
 int main() {
+   Register user;
+
     if (AskLoginorRegister() == "login") {
         // login
     } else {
-        try {
-            Register user = RegisterUser();
-            Register *pUser = &user;
-            // User registration successful, continue with the program
-        } catch (const std::exception& e) {
-            std::cout << "Error: " << e.what() << std::endl;
-        }
+        // register
+        user = RegisterUser();
+    }
+
+    // if user object is default-constructed
+    if (user.getUsername() == "") {
+        std::cout << "User not registered" << std::endl;
+    } else {
+        std::cout << "Username: " << user.getUsername() << std::endl;
+        std::cout << "Password: " << user.getPassword() << std::endl;
+        std::cout << "Email: " << user.getEmail() << std::endl;
+        std::cout << "Phone number: " << user.getPhoneNumber() << std::endl;
     }
 
     // If login, ask for username and password
@@ -98,9 +107,8 @@ int main() {
     // If user wants to exit, say "Goodbye" and exit the program
 
     // keep window open
-    std::cin.clear();
-    std::cin.ignore(32767, '\n');
+    std::cout.clear();
+    std::cin.ignore();
     std::cin.get();
-
     return 0;
 }

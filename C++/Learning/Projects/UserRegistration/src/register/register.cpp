@@ -12,8 +12,19 @@
 #include <string>
 #include "register.h"
 
-Register::Register(std::string aUsername, std::string aPassword, std::string aEmail, std::string aPhoneNumber)
-    : username(setUsername(aUsername)), password(setPassword(aPassword)), email(setEmail(aEmail)), phoneNumber(setPhoneNumber(aPhoneNumber)) {}
+Register::Register() {
+    this->username = "";
+    this->password = "";
+    this->email = "";
+    this->phoneNumber = "";
+}
+
+Register::Register(std::string aUsername, std::string aPassword, std::string aEmail, std::string aPhoneNumber) {
+    this->username = setUsername(aUsername);
+    this->password = setPassword(aPassword);
+    this->email = setEmail(aEmail);
+    this->phoneNumber = setPhoneNumber(aPhoneNumber);
+}
 
 std::string Register::getUsername() {
     return this->username;
@@ -30,35 +41,35 @@ std::string Register::getEmail() {
 std::string Register::getPhoneNumber() {
     return this->phoneNumber;
 }
-
-std::string Register::setUsername(std::string username) {
-    if (username.length() < 5) {
+// DEBUG this->username = aUsername does not work because object is not yet constructed, is there a better way
+std::string Register::setUsername(std::string aUsername) {
+    if (aUsername.length() < 5) {
         throw std::invalid_argument("Username must be at least 5 characters long");
     }
-    this->username = username;
-    return this->username;
+    username = aUsername;
+    return username;
 }
 
-std::string Register::setPassword(std::string password) {
-    if (password.length() < 8) {
+std::string Register::setPassword(std::string aPassword) {
+    if (aPassword.length() < 8) {
         throw std::invalid_argument("Password must be at least 8 characters long");
-    }
-    this->password = password;
-    return this->password;
+    };
+    password = aPassword;
+    return password;
 }
 
-std::string Register::setEmail(std::string email) {
-    if (email.find("@") == std::string::npos || email.find(".") == std::string::npos) {
+std::string Register::setEmail(std::string aEmail) {
+    if (aEmail.find("@") == std::string::npos || aEmail.find(".") == std::string::npos) {
         throw std::invalid_argument("Invalid email");
     }
-    this->email = email;
-    return this->email;
+    email = aEmail;
+    return email;
 }
 
-std::string Register::setPhoneNumber(std::string phoneNumber) {
-    if (phoneNumber.length() != 10) {
+std::string Register::setPhoneNumber(std::string aPhoneNumber) {
+    if (aPhoneNumber.length() != 10) {
         throw std::invalid_argument("Invalid phone number");
     }
-    this->phoneNumber = phoneNumber;
-    return this->phoneNumber;
+    phoneNumber = aPhoneNumber;
+    return phoneNumber;
 }
