@@ -1,7 +1,5 @@
 """Leahness"""
 
-print("Find which celebrity you are!\n")
-
 score = {
     'harry': 0,
     'taylor': 0,
@@ -60,6 +58,8 @@ def question_one():
 
 
 if __name__ == '__main__':
+    print("Find which celebrity you are!\n")
+    
     question_one()
     question_two()
     question_three()
