@@ -18,7 +18,6 @@ questions_quiz = {
 def question_one():
     """Func for q1"""
     q1 = questions_quiz.get('question_one_answers')
-    harry_valid = ['1', '2']
 
     print("How would your friends describe you?\n")
     for index, option in enumerate(q1):
@@ -27,7 +26,7 @@ def question_one():
 
     answer = input('> ')
 
-    if answer in harry_valid:
+    if answer in ['1', '2']:
         print('One point for Harry')
         score['harry'] += 1
     else:
