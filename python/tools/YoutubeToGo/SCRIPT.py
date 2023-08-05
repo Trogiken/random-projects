@@ -1,8 +1,7 @@
 """
-This script reads the csv file created by takeout.google.com to
-resubscribe to all the channels.
+This script reads the "subscriptions.csv" created by takeout.google.com to
+resubscribe to all the channels using oAuth2 credentials.
 
-The csv file selected should be the "subscriptions.csv" file.
 ---------------------------------------------------------------
 
 Prerequisites:
@@ -25,10 +24,11 @@ Prerequisites:
     * Download the JSON file.
 """
 
-from tkinter import filedialog
 import google_auth_oauthlib.flow
 import requests
 import csv
+from tkinter import filedialog
+from os import path
 
 
 def paused_exit(code=0):
@@ -41,6 +41,11 @@ def get_file_data():
     """Asks for a file path and return list of dict's"""
     print("Select the 'subscriptions.csv' file from takeout.google.com")
     file_path = filedialog.askopenfilename()
+
+    if not path.exists(file_path):
+        print("File not found!")
+        return False
+    
     with open(file_path, newline='') as csvfile:
         try:
             reader = csv.DictReader(csvfile)
@@ -52,7 +57,9 @@ def get_file_data():
             print("Invalid file. Please make sure you selected the correct file.")
             return False
         
-        if not reader:
+        try:
+            reader.__next__()
+        except StopIteration:
             print("File is empty!")
             return False
 
@@ -63,6 +70,11 @@ def get_credentials():
     """Performs OAuth2 authorization and returns credentials"""
     print("Select the 'client_secrets.json' file")
     file_path = filedialog.askopenfilename()
+
+    if not path.exists(file_path):
+        print("File not found!")
+        return False
+
     try:
         flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
             client_secrets_file=file_path,
@@ -70,14 +82,15 @@ def get_credentials():
         )
         credentials = flow.run_local_server(port=8080)
         return credentials
-    except FileNotFoundError:
-        print("client_secrets.json not found!")
+    except BaseException as err:
+        print(f"\nError getting credentials:\n{err}")
         return False
 
 
 def subscribe_prompt(channel_data):
     """Prints the channel names and asks for confirmation"""
     channel_count = len(channel_data)
+    print() # newline
     for channel in channel_data:
         print(channel["Channel Title"])
     print(f"\nSubscribe to {channel_count} channels?")
@@ -124,16 +137,18 @@ def subscribe_to_channels(channel_data, credentials):
         }
         response = subscribe_request(request_body, credentials.token)
 
-        if response.status_code == 204:
-            print(f"\nSubscribed to {channel['Channel Title']}\n")
+        if response.ok:
+            print(f"\nSubscribed to {channel['Channel Title']} successfully\n")
         else:
-            print(f"\nError subscribing to {channel['Channel Title']}:\n{response.json()}\n")
+            print(f"\nError subscribing to {channel['Channel Title']}:\n{response.json()['error']['errors']}")
 
 
 if __name__ == '__main__':
     channel_data = get_file_data()
+    if not channel_data:
+        paused_exit(1)
     credentials = get_credentials()
-    if not channel_data or not credentials:
+    if not credentials:
         paused_exit(1)
     
     if subscribe_prompt(channel_data):
