@@ -18,24 +18,74 @@ Prerequisites:
     * Select External and click on the "Create" button.
     * Fill out the form with information (can be anything)
     * Save and Continue
-    * You'll be shown your client ID and client secret. Keep these safe.
+    * Finish the setup
+    * Publish the app
+    * Go back to the Credentials page and create a new OAuth client ID as a Desktop app.
+    * Download the JSON file.
 """
 
 from tkinter import filedialog
+import google_auth_oauthlib.flow
 import requests
 import csv
 
 
 def get_file_data():
     """Asks for a file path and return list of dict's"""
+    print("Select the 'subscriptions.csv' file from takeout.google.com")
     file_path = filedialog.askopenfilename()
     with open(file_path, newline='') as csvfile:
-        return list(csv.DictReader(csvfile))
+        try:
+            reader = csv.DictReader(csvfile)
+        except csv.Error:
+            print("Error reading file!")
+            return False
+
+        if reader.fieldnames != ['Channel Id', 'Channel Url', 'Channel Title']:
+            print("Invalid file. Please make sure you selected the correct file.")
+            return False
+        
+        if not reader:
+            print("File is empty!")
+            return False
+
+        return list(reader)
 
 
-def get_api_key():
-    """Asks for a API key and returns it"""
-    return input("Enter API key: ")
+def get_credentials():
+    """Performs OAuth2 authorization and returns credentials"""
+    print("Select the 'client_secrets.json' file")
+    file_path = filedialog.askopenfilename()
+    try:
+        flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
+            client_secrets_file=file_path,
+            scopes=["https://www.googleapis.com/auth/youtube.force-ssl"]
+        )
+        credentials = flow.run_local_server(port=8080)
+        return credentials
+    except FileNotFoundError:
+        print("client_secrets.json not found!")
+        return False
+
+
+def subscribe_request(request_body, credentials):
+    """Sends a POST request to the YouTube Data API"""
+    access_token = credentials.token
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+    try:
+        response = requests.post(
+            "https://www.googleapis.com/youtube/v3/subscriptions",
+            json=request_body,
+            headers=headers
+        )
+        response.raise_for_status()
+        return response
+    except requests.exceptions.HTTPError as err:
+        return response
 
 
 def subscribe_prompt(channel_data):
@@ -55,23 +105,7 @@ def subscribe_prompt(channel_data):
             print("Invalid input. Try again.")
 
 
-def subscribe_request(request_body, params):
-    """Sends a POST request to the YouTube Data API"""
-    try:
-        response = requests.post(
-            "https://www.googleapis.com/youtube/v3/subscriptions",
-            json=request_body,
-            params=params
-        )
-        response.raise_for_status()
-        return response
-    except requests.exceptions.HTTPError as err:
-        print(err)
-        print(response.json())
-        return response
-
-
-def subscribe_to_channels(channel_data, api_key):
+def subscribe_to_channels(channel_data, credentials):
     """Subscribes to all the channels in the list"""
     for channel in channel_data:
         request_body = {
@@ -82,21 +116,20 @@ def subscribe_to_channels(channel_data, api_key):
                 }
             }
         }
-        params = {
-            "part": "snippet",
-            "key": api_key
-        }
-        response = subscribe_request(request_body, params)
+        response = subscribe_request(request_body, credentials)
 
         if response.status_code == 204:
             print(f"\nSubscribed to {channel['Channel Title']}\n")
         else:
-            print(f"Error subscribing to {channel['Channel Title']}\nResponse: {response.json()}\n")
+            print(f"\nError subscribing to {channel['Channel Title']}:\n{response.json()}\n")
 
 
 if __name__ == '__main__':
     channel_data = get_file_data()
-    api_key = get_api_key()
-
+    credentials = get_credentials()
+    if not channel_data or not credentials:
+        input("Press Enter to exit")
+        exit()
+    
     if subscribe_prompt(channel_data):
-        subscribe_to_channels(channel_data, api_key)
+        subscribe_to_channels(channel_data, credentials)
