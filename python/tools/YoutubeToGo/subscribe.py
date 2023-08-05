@@ -31,12 +31,6 @@ from tkinter import filedialog
 from os import path
 
 
-def paused_exit(code=0):
-    """Exits the program after user input"""
-    input("\nPress Enter to exit")
-    exit(code)
-
-
 def get_file_data():
     """Asks for a file path and return list of dict's"""
     print("Select the 'subscriptions.csv' file from takeout.google.com")
@@ -121,7 +115,7 @@ def subscribe_request(request_body, access_token):
         return response
     except BaseException as err:
         print(f"\nError sending request:\n{err}")
-        paused_exit(1)
+        return False
 
 
 def subscribe_to_channels(channel_data, credentials):
@@ -136,22 +130,10 @@ def subscribe_to_channels(channel_data, credentials):
             }
         }
         response = subscribe_request(request_body, credentials.token)
+        if not response: # skip to next channel if error
+            continue
 
         if response.ok:
             print(f"\nSubscribed to {channel['Channel Title']} successfully\n")
         else:
             print(f"\nError subscribing to {channel['Channel Title']}:\n{response.json()['error']['errors']}")
-
-
-if __name__ == '__main__':
-    channel_data = get_file_data()
-    if not channel_data:
-        paused_exit(1)
-    credentials = get_credentials()
-    if not credentials:
-        paused_exit(1)
-    
-    if subscribe_prompt(channel_data):
-        subscribe_to_channels(channel_data, credentials)
-
-    paused_exit()
