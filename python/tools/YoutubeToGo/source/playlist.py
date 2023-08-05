@@ -1,5 +1,5 @@
 """
-This script reads playlist cvs files from takeout.google.com and 
+This script reads playlist csv files from takeout.google.com and 
 inserts them into the new account
 """
 
