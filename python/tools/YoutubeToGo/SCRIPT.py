@@ -18,6 +18,7 @@ Prerequisites:
     * Select External and click on the "Create" button.
     * Fill out the form with information (can be anything)
     * Save and Continue
+    * Enable all scopes related to the YouTube Data API
     * Finish the setup
     * Publish the app
     * Go back to the Credentials page and create a new OAuth client ID as a Desktop app.
@@ -28,6 +29,12 @@ from tkinter import filedialog
 import google_auth_oauthlib.flow
 import requests
 import csv
+
+
+def paused_exit(code=0):
+    """Exits the program after user input"""
+    input("\nPress Enter to exit")
+    exit(code)
 
 
 def get_file_data():
@@ -68,32 +75,12 @@ def get_credentials():
         return False
 
 
-def subscribe_request(request_body, credentials):
-    """Sends a POST request to the YouTube Data API"""
-    access_token = credentials.token
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-    }
-    try:
-        response = requests.post(
-            "https://www.googleapis.com/youtube/v3/subscriptions",
-            json=request_body,
-            headers=headers
-        )
-        response.raise_for_status()
-        return response
-    except requests.exceptions.HTTPError as err:
-        return response
-
-
 def subscribe_prompt(channel_data):
     """Prints the channel names and asks for confirmation"""
     channel_count = len(channel_data)
     for channel in channel_data:
         print(channel["Channel Title"])
-    print(f"\nSubscribe to {channel_count} channels?\n")
+    print(f"\nSubscribe to {channel_count} channels?")
 
     while True:
         answer = input("Y/N: ").lower()
@@ -103,6 +90,25 @@ def subscribe_prompt(channel_data):
             return False
         else:
             print("Invalid input. Try again.")
+
+
+def subscribe_request(request_body, access_token):
+    """Sends a POST request to the YouTube Data API"""
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
+    try:
+        response = requests.post(
+            "https://www.googleapis.com/youtube/v3/subscriptions?part=snippet",
+            json=request_body,
+            headers=headers
+        )
+        return response
+    except BaseException as err:
+        print(f"\nError sending request:\n{err}")
+        paused_exit(1)
 
 
 def subscribe_to_channels(channel_data, credentials):
@@ -116,7 +122,7 @@ def subscribe_to_channels(channel_data, credentials):
                 }
             }
         }
-        response = subscribe_request(request_body, credentials)
+        response = subscribe_request(request_body, credentials.token)
 
         if response.status_code == 204:
             print(f"\nSubscribed to {channel['Channel Title']}\n")
@@ -128,8 +134,9 @@ if __name__ == '__main__':
     channel_data = get_file_data()
     credentials = get_credentials()
     if not channel_data or not credentials:
-        input("Press Enter to exit")
-        exit()
+        paused_exit(1)
     
     if subscribe_prompt(channel_data):
         subscribe_to_channels(channel_data, credentials)
+
+    paused_exit()
