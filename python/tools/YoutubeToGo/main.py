@@ -32,6 +32,7 @@ Prerequisites:
 """
 
 import source.subscribe as subs
+import source.playlist as plst
 import source.api as api
 from source.misc import incomplete_function
 
@@ -75,10 +76,17 @@ def subscribe_mode():
         subs.subscribe_to_channels(channel_data, credentials)
 
 
-@incomplete_function
 def playlist_mode():
     """Create playlists logic"""
-    pass
+    playlist_data = plst.combine_playlists()
+    if not playlist_data:
+        paused_exit(1)
+    credentials = api.get_credentials()
+    if not credentials:
+        paused_exit(1)
+    
+    if plst.playlist_prompt(playlist_data):
+        plst.create_playlists(playlist_data, credentials)
 
 
 if __name__ == "__main__":
@@ -91,6 +99,5 @@ if __name__ == "__main__":
         playlist_mode()
     else:
         raise Exception("Error getting option")
-
 
     paused_exit()

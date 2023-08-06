@@ -40,11 +40,10 @@ def get_file_data():
 
 def subscribe_prompt(channel_data):
     """Prints the channel names and asks for confirmation"""
-    channel_count = len(channel_data)
     print() # newline
     for channel in channel_data:
         print(channel["Channel Title"])
-    print(f"\nSubscribe to {channel_count} channels?")
+    print(f"\nSubscribe to {len(channel_data)} channels?")
 
     while True:
         answer = input("Y/N: ").lower()

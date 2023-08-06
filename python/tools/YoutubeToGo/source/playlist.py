@@ -7,50 +7,60 @@ import csv
 import source.api as api
 from tkinter import filedialog
 from os import path
-from misc import incomplete_function
+from source.misc import incomplete_function
 
 
-@incomplete_function
 def combine_playlists():
-    """Asks for a file path and return list of dict's"""
+    """Asks for playlist csv file(s) and returns processed data"""
     print("Select the playlist csv file(s)")
-    file_path = filedialog.askopenfilename(multiple=True)
-
-    # TODO Add support for multiple files, combine them into one list
-
-    if not path.exists(file_path):
-        print("File not found!")
-        return False
+    file_paths = filedialog.askopenfilename(multiple=True)
     
-    with open(file_path, newline='') as csvfile:
-        try:
-            reader = csv.DictReader(csvfile)
-        except csv.Error:
-            print("Error reading file!")
-            return False
+    csv_data = []
+    for file_path in file_paths:
+        with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
+            try:
+                csvreader = csv.reader(csvfile)
+            except csv.Error:
+                print("Error reading file!")
+                return False
+            
+            playlist_table = []
+            video_table = []
 
-        if reader.fieldnames != ['Playlist Title', 'Video Ids']:
-            print("Invalid file. Please make sure you selected the correct file.")
-            return False
-        
-        try:
-            reader.__next__()
-        except StopIteration:
-            print("File is empty!")
-            return False
+            current_table = None
+            for row in csvreader:
+                if not any(row):
+                    continue  # Skip empty rows
 
-        return list(reader)
+                # Check if the row represents the start of a table
+                if row[0] == "Playlist Id":
+                    current_table = "playlist"
+                    continue
+                elif row[0] == "Video Id":
+                    current_table = "video"
+                    continue
+
+                if current_table == "playlist":
+                    playlist_table.append(row)
+                elif current_table == "video":
+                    video_table.append(row)
+                
+            csv_data.append({
+                "title": path.basename(file_path).split(".")[0],
+                "description": playlist_table[0][4],
+                "visibility": playlist_table[0][5].casefold(),
+                "video_ids": [row[0] for row in video_table]
+            })
+    
+    return csv_data
 
 
-@incomplete_function
 def playlist_prompt(playlist_data):
     """Prints the playlist names and asks for confirmation"""
-    # TODO Verify proper format and len() functionality
-    playlist_count = len(playlist_data)
     print() # newline
     for playlist in playlist_data:
-        print(playlist["Playlist Title"])
-    print(f"\nCreate {playlist_count} playlists?")
+        print(f"{playlist['title']} ({len(playlist['video_ids'])} Videos)")
+    print(f"\nCreate {len(playlist_data)} playlists?")
 
     while True:
         answer = input("Y/N: ").lower()
@@ -62,7 +72,60 @@ def playlist_prompt(playlist_data):
             print("Invalid input. Try again.")
 
 
-@incomplete_function
+def create_playlist(title, description, visability, access_token):
+    """Creates a playlist with the given title"""
+    url = "https://youtube.googleapis.com/youtube/v3/playlists?part=snippet,status"
+    request_body = {
+        "snippet": {
+            "title": title,
+            "description": description
+        },
+        "status": {
+            "privacyStatus": visability
+        }
+    }
+    response = api.post_request(url, request_body, access_token)
+    if not response:
+        return None
+    if not response.ok:
+        print(f"Error creating playlist '{title}':\n{response.json()['error']['errors']}\n")
+        return None
+    
+    playlist_id = response.json()["id"]
+    print(f"\nCreated playlist '{title}' ({playlist_id})\n")
+
+    return playlist_id
+
+def add_videos_to_playlist(playlist_id, video_ids, access_token):
+    """Adds videos to a playlist, skipping duplicates"""
+    url = "https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet"
+    for video_id in video_ids:
+        request_body = {
+            "snippet": {
+                "playlistId": playlist_id,
+                "resourceId": {
+                    "kind": "youtube#video",
+                    "videoId": video_id
+                }
+            }
+        }
+        response = api.post_request(url, request_body, access_token)
+        if not response:
+            return False
+        if not response.ok:
+            print(f"\nError adding video '{video_id}' to playlist\n{response.json()['error']['errors']}\n")
+            continue
+        print(f"\nAdded video '{video_id}' to playlist\n")
+    return True
+
 def create_playlists(playlist_data, credentials):
     """Creates playlists and adds videos to them, skipping duplicates"""
-    pass
+    access_token = credentials.token
+    for playlist in playlist_data:
+        title = playlist["title"]
+        description = playlist["description"]
+        visibility = playlist["visibility"]
+        playlist_id = create_playlist(title, description, visibility, access_token)
+        if playlist_id:
+            video_ids = playlist["video_ids"]
+            add_videos_to_playlist(playlist_id, video_ids, access_token)
