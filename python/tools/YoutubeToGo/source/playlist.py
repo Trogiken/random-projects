@@ -7,7 +7,6 @@ import csv
 import source.api as api
 from tkinter import filedialog
 from os import path
-from source.misc import incomplete_function
 
 
 def combine_playlists():
@@ -115,11 +114,12 @@ def add_videos_to_playlist(playlist_id, video_ids, access_token):
         if not response.ok:
             print(f"\nError adding video '{video_id}' to playlist\n{response.json()['error']['errors']}\n")
             continue
-        print(f"\nAdded video '{video_id}' to playlist\n")
+        print(f"Added video '{video_id}' to playlist")
+
     return True
 
 def create_playlists(playlist_data, credentials):
-    """Creates playlists and adds videos to them, skipping duplicates"""
+    """Creates playlists and adds videos to them"""
     access_token = credentials.token
     for playlist in playlist_data:
         title = playlist["title"]
