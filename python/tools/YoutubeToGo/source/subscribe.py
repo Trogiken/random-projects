@@ -67,7 +67,7 @@ def subscribe_to_channels(channel_data, credentials):
             }
         }
         response = api.post_request("https://www.googleapis.com/youtube/v3/subscriptions?part=snippet", request_body, credentials.token)
-        if not response: # skip to next channel if error
+        if not response:  # DEBUG Skips channel even if there was a response and not just failed request
             continue
 
         if response.ok:
