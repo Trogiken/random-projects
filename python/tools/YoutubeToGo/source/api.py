@@ -1,10 +1,11 @@
 import google_auth_oauthlib.flow
+import google.oauth2.credentials
 import requests
 from tkinter import filedialog
 from os import path
 
 
-def get_credentials():
+def get_credentials() -> google.oauth2.credentials.Credentials or bool:
     """Performs OAuth2 authorization and returns credentials"""
     print("Select the 'client_secrets.json' file")
     file_path = filedialog.askopenfilename()
@@ -25,7 +26,7 @@ def get_credentials():
         return False
 
 
-def post_request(url, request_body, access_token):
+def post_request(url, request_body, access_token) -> requests.Response or bool:
     """Sends a POST request to the YouTube Data API"""
     headers = {
         "Authorization": f"Bearer {access_token}",

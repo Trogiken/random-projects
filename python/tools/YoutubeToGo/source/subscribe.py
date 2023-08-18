@@ -9,7 +9,7 @@ from tkinter import filedialog
 from os import path
 
 
-def get_file_data():
+def get_file_data() -> list or bool:
     """Asks for a file path and return list of dict's"""
     print("Select the 'subscriptions.csv' file from takeout.google.com")
     file_path = filedialog.askopenfilename()
@@ -38,7 +38,7 @@ def get_file_data():
         return list(reader)
 
 
-def subscribe_prompt(channel_data):
+def subscribe_prompt(channel_data) -> bool:
     """Prints the channel names and asks for confirmation"""
     print() # newline
     for channel in channel_data:
@@ -55,7 +55,7 @@ def subscribe_prompt(channel_data):
             print("Invalid input. Try again.")
 
 
-def subscribe_to_channels(channel_data, credentials):
+def subscribe_to_channels(channel_data, credentials) -> None:
     """Subscribes to all the channels in the list"""
     for channel in channel_data:
         request_body = {

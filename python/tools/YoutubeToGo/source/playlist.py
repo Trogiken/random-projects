@@ -9,7 +9,7 @@ from tkinter import filedialog
 from os import path
 
 
-def combine_playlists():
+def combine_playlists() -> list or bool:
     """Asks for playlist csv file(s) and returns processed data"""
     print("Select the playlist csv file(s)")
     file_paths = filedialog.askopenfilename(multiple=True)
@@ -54,7 +54,7 @@ def combine_playlists():
     return csv_data
 
 
-def playlist_prompt(playlist_data):
+def playlist_prompt(playlist_data) -> bool:
     """Prints the playlist names and asks for confirmation"""
     print() # newline
     for playlist in playlist_data:
@@ -71,7 +71,7 @@ def playlist_prompt(playlist_data):
             print("Invalid input. Try again.")
 
 
-def create_playlist(title, description, visability, access_token):
+def create_playlist(title, description, visability, access_token) -> str or None:
     """Creates a playlist with the given title"""
     url = "https://youtube.googleapis.com/youtube/v3/playlists?part=snippet,status"
     request_body = {
@@ -95,7 +95,7 @@ def create_playlist(title, description, visability, access_token):
 
     return playlist_id
 
-def add_videos_to_playlist(playlist_id, video_ids, access_token):
+def add_videos_to_playlist(playlist_id, video_ids, access_token) -> bool:
     """Adds videos to a playlist, skipping duplicates"""
     url = "https://youtube.googleapis.com/youtube/v3/playlistItems?part=snippet"
     for video_id in video_ids:
@@ -118,7 +118,7 @@ def add_videos_to_playlist(playlist_id, video_ids, access_token):
 
     return True
 
-def create_playlists(playlist_data, credentials):
+def create_playlists(playlist_data, credentials) -> None:
     """Creates playlists and adds videos to them"""
     access_token = credentials.token
     for playlist in playlist_data:
