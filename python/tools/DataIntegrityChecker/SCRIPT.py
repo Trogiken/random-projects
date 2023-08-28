@@ -1,3 +1,36 @@
+"""
+Data Integrity Checker
+
+This program provides tools to create and compare hash databases for the purpose of data integrity.
+
+Dependencies:
+- PyQt6.QtWidgets: For GUI file dialogs.
+- os, sys, tempfile, hashlib, sqlite3, time, json: Standard Python libraries.
+- typing: For type hints.
+- multiprocessing.Pool: For parallel processing.
+
+Functions:
+- prompt_exit(): Exit the program with a prompt.
+- ask_filelocation(filter, title='Select Hash Database'): Return the file path of the file selected.
+- ask_directory(title='Select a Directory'): Return the directory path of the directory selected.
+- ask_savefile(filter, title='Select a Save Location'): Return the file path of the file selected for saving.
+- ask_save_summary_dialog(summary): Prompt user to save summary to a JSON file.
+- save_json(summary, save_path): Save a summary to a JSON file.
+- display_summary(summary): Display a summary of the comparison.
+- is_database_valid(db_path): Check if the database is valid.
+- create_hash(file_path): Create hash from file bytes using the chunk method.
+- create_hash_db(hash_dir_path, db_save_path): Create a hash database from a directory path and save it.
+- compare_databases(db1_path, db2_path): Compare two hash databases and return a summary of the differences.
+- opt_1(): Create a hash database from a directory path and save it to a file path.
+- opt_2(): Create and compare a temporary hash database to the selected hash database.
+- opt_3(): Compare two hash databases.
+
+Usage:
+- Run this script to start the Data Integrity Checker application.
+- Follow the on-screen prompts to create hash databases and compare them.
+"""
+
+
 import os
 import sys
 import tempfile
