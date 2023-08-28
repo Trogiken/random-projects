@@ -10,6 +10,12 @@ from multiprocessing import Pool
 from PyQt6.QtWidgets import QApplication, QFileDialog
 
 
+def prompt_exit() -> None:
+    """Exit the program with a prompt."""
+    input("\n\nPress ENTER to exit...")
+    sys.exit()
+
+
 def ask_filelocation(filter: str, title: str='Select Hash Database') -> str:
     """Return the file path of the file selected."""
     file_dialog = QFileDialog()
@@ -21,7 +27,7 @@ def ask_filelocation(filter: str, title: str='Select Hash Database') -> str:
         return file_dialog.selectedFiles()[0]
     else:
         print('Canceled')
-        sys.exit()
+        prompt_exit()
 
 
 def ask_directory(title: str='Select a Directory') -> str:
@@ -34,7 +40,8 @@ def ask_directory(title: str='Select a Directory') -> str:
         return directory_dialog.selectedFiles()[0]
     else:
         print('Canceled')
-        sys.exit()
+        prompt_exit()
+
 
 def ask_savefile(filter: str, title: str='Select a Save Location') -> str:
     """Return the file path of the file selected for saving."""
@@ -48,7 +55,8 @@ def ask_savefile(filter: str, title: str='Select a Save Location') -> str:
         return file_dialog.selectedFiles()[0]
     else:
         print('Canceled')
-        sys.exit()
+        prompt_exit()
+
 
 def ask_save_summary_dialog(summary: dict) -> None:
     print('\nSave summary to a json file? (y/n)')
@@ -63,7 +71,7 @@ def ask_save_summary_dialog(summary: dict) -> None:
         print(f"Summary saved to '{save_path}'")
     else:
         print('Canceled')
-        sys.exit()
+        prompt_exit()
 
 
 def save_json(summary: dict, save_path: str) -> str:
@@ -114,6 +122,7 @@ def save_json(summary: dict, save_path: str) -> str:
         json.dump(json_save, file, indent=4)
     
     return save_path
+
 
 def display_summary(summary: dict) -> None:
     """Display a summary of the comparison."""
@@ -198,7 +207,7 @@ def create_hash_db(hash_dir_path: str, db_save_path: str) -> int:
             os.remove(db_save_path)
         else:
             print('Canceled')
-            sys.exit()
+            prompt_exit()
 
     connection = sqlite3.connect(db_save_path)
     cursor = connection.cursor()
@@ -305,6 +314,72 @@ def compare_databases(db1_path: str, db2_path: str) -> dict:
     return summary
 
 
+def opt_1():
+    """Create a hash database from a directory path and save it to a file path."""
+    print('Select directory to start creating a hash database')
+    directory_path = ask_directory('Select a Start Directory')
+    print(f'Selected hash directory: {directory_path}')
+
+    print('Select a location to store the hash database')
+    db_save_path = ask_savefile('SQLite3 (*.sqlite3)')
+    print(f'Selected Save Path: {db_save_path}')
+
+    save_path, number_files = create_hash_db(directory_path, db_save_path)
+
+    print(f"DONE!\n{number_files} Files Hashed\nHash database saved to '{save_path}'")
+
+
+def opt_2():
+    """Create and compare a temporary hash database to the selected hash database."""
+    print('Select Hash Database')
+    selected_db_path = ask_filelocation('SQLite3 (*.sqlite3)')
+    print(f'Selected Hash Database: {selected_db_path}')
+
+    if not is_database_valid(selected_db_path):
+        print('Invalid File Detected')
+        prompt_exit()
+    
+    connection = sqlite3.connect(selected_db_path)
+    cursor = connection.cursor()
+    cursor.execute('SELECT COUNT(*) FROM hashes')
+    num_files = cursor.fetchone()[0]
+    cursor.execute('SELECT working_directory FROM attributes')
+    working_directory = cursor.fetchone()[0]
+    connection.close()
+
+    with tempfile.TemporaryDirectory() as temp_dir_path:
+        print()
+        print(f"Temporary Directory Created: '{temp_dir_path}'")
+        print(f"Hashing From: '{working_directory}'")
+        temp_db = os.path.join(temp_dir_path, f'temp-db.sqlite3')
+        print(f"Temporary DB: '{temp_db}'")
+
+        database_path, _ = create_hash_db(working_directory, temp_db)
+        summary = compare_databases(selected_db_path, database_path)
+
+    display_summary(summary)
+    ask_save_summary_dialog(summary)
+
+
+def opt_3():
+    """Compare two hash databases."""
+    print('Select First Hash Database')
+    db1_path = ask_filelocation(title='Select First Hash Database', filter='SQLite3 (*.sqlite3)')
+    print(f'First Hash Database: {db1_path}')
+
+    print('Select Second Hash Database')
+    db2_path = ask_filelocation(title='Select Second Hash Database', filter='SQLite3 (*.sqlite3)')
+    print(f'Second Hash Database: {db2_path}')
+
+    if not is_database_valid(db1_path) and is_database_valid(db2_path):
+        print('Invalid File Detected')
+        prompt_exit()
+
+    summary = compare_databases(db1_path, db2_path)
+    display_summary(summary)
+    ask_save_summary_dialog(summary)
+
+
 if __name__ == '__main__':
     app = QApplication([])
 
@@ -326,64 +401,12 @@ if __name__ == '__main__':
     main_option_selected = input('Enter option: ')
 
     if main_option_selected == '1':
-        print('Select directory to start creating a hash database')
-        directory_path = ask_directory('Select a Start Directory')
-        print(f'Selected hash directory: {directory_path}')
-
-        print('Select a location to store the hash database')
-        db_save_path = ask_savefile('SQLite3 (*.sqlite3)')
-        print(f'Selected Save Path: {db_save_path}')
-
-        save_path, number_files = create_hash_db(directory_path, db_save_path)
-
-        print(f"DONE!\n{number_files} Files Hashed\nHash database saved to '{save_path}'")
+        opt_1()
     elif main_option_selected == '2':
-        print('Select Hash Database')
-        selected_db_path = ask_filelocation('SQLite3 (*.sqlite3)')
-        print(f'Selected Hash Database: {selected_db_path}')
-
-        if not is_database_valid(selected_db_path):
-            print('Invalid File Detected')
-            sys.exit()
-        
-        connection = sqlite3.connect(selected_db_path)
-        cursor = connection.cursor()
-        cursor.execute('SELECT COUNT(*) FROM hashes')
-        num_files = cursor.fetchone()[0]
-        cursor.execute('SELECT working_directory FROM attributes')
-        working_directory = cursor.fetchone()[0]
-        connection.close()
-
-        with tempfile.TemporaryDirectory() as temp_dir_path:
-            print()
-            print(f"Temporary Directory Created: '{temp_dir_path}'")
-            print(f"Hashing From: '{working_directory}'")
-            temp_db = os.path.join(temp_dir_path, f'temp-db.sqlite3')
-            print(f"Temporary DB: '{temp_db}'")
-
-            database_path, _ = create_hash_db(working_directory, temp_db)
-            summary = compare_databases(selected_db_path, database_path)
-
-        display_summary(summary)
-        ask_save_summary_dialog(summary)
-
+        opt_2()
     elif main_option_selected == '3':
-        print('Select First Hash Database')
-        db1_path = ask_filelocation(title='Select First Hash Database', filter='SQLite3 (*.sqlite3)')
-        print(f'First Hash Database: {db1_path}')
-
-        print('Select Second Hash Database')
-        db2_path = ask_filelocation(title='Select Second Hash Database', filter='SQLite3 (*.sqlite3)')
-        print(f'Second Hash Database: {db2_path}')
-
-        if not is_database_valid(db1_path) and is_database_valid(db2_path):
-            print('Invalid File Detected')
-            sys.exit()
-
-        summary = compare_databases(db1_path, db2_path)
-        display_summary(summary)
-        ask_save_summary_dialog(summary)
-
+        opt_3()
     else:
         print('Invalid Option Selected')
-        sys.exit()
+    
+    prompt_exit()
