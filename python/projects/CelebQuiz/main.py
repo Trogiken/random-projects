@@ -31,7 +31,7 @@ def question_prompt(question_index: int) -> None:
             answer -= 1
             answer = quiz_data['questions'][question_index][1][answer]
             break
-        except ValueError:
+        except (ValueError, IndexError):
             print('Please enter a valid number')
             continue
             
