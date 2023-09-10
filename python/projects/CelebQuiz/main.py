@@ -1,105 +1,56 @@
 """Celeb Quiz Program"""
 
-score = {
-    'harry': 0,
-    'taylor': 0,
+
+quiz_data = {
+    'score': {
+            'harry': 0,
+            'taylor': 0,
+        },
+    'questions': [("How would your friends describe you?", ["charismatic", "funny", "sweet", "generous"]),
+                  ("What is your favorite thing to do at home?", ["sleep", "read", "meditate", "dance"]),
+                  ("Which is your favorite animal?", ["hamster", "cat", "dog", "goldfish"]),
+                  ("What is your favorite color?", ["purple", "blue", "yellow", "green"])],
+    'persons': {
+        'harry': ['charismatic', 'funny', 'meditate', 'dance', 'dog', 'goldfish', 'blue', 'green'],
+        'taylor': ['sweet', 'generous', 'sleep', 'read', 'hamster', 'cat', 'purple', 'yellow'],
+    }
 }
 
-questions_quiz = {
-    'question_one_answers': ["charismatic", "funny", "sweet", "generous"],
-    'question_two_answers': ["sleep", "read", "meditate", "dance"],  
-    'question_three_answers': ["hamster", "cat", "dog", "goldfish"],
-    'question_four_answers': ["blue", "yellow", "green", "purple"],
-}
 
+def question_prompt(question_index: int) -> None:
+    """Question prompt for user to input"""
 
-def question_one():
-    """Func for q1"""
-    q1 = questions_quiz.get('question_one_answers')
-
-    print("How would your friends describe you?\n")
-    for index, option in enumerate(q1):
+    print(quiz_data['questions'][question_index][0])
+    for index, option in enumerate(quiz_data['questions'][question_index][1]):
         index += 1
         print(f"{index}. {option}")
 
-    answer = input('> ')
-
-    if answer in ['1', '2']:
-        print('One point for Harry')
-        score['harry'] += 1
+    while True:
+        try:
+            answer = int(input('> '))
+            answer -= 1
+            answer = quiz_data['questions'][question_index][1][answer]
+            break
+        except ValueError:
+            print('Please enter a valid number')
+            continue
+            
+    if answer in quiz_data['persons']['harry']:
+        quiz_data['score']['harry'] += 1
     else:
-        print('One point for Taylor')
-        score['taylor'] += 1
-
-
-def question_two():
-    """Function for q2"""
-    q2 = questions_quiz.get('question_two_answers')
-
-    print("What is your favorite thing to do at home?\n")
-    for index, option in enumerate(q2):
-        index += 1
-        print(f"{index}, {option}")
-
-    answer = input('> ')
-
-    if answer in ['3', '4']:
-        print('One point for Harry')
-        score['harry'] += 1
-    else:
-        print('One point for Taylor')
-        score['taylor'] += 1
-
-
-def question_three():
-    """Function for q3"""
-    q3 = questions_quiz.get('question_three_answers')
-
-    print("Which is your favorite animal?\n")
-    for index, option in enumerate(q3):
-        index += 1
-        print(f"{index}, {option}")
-
-    answer = input('> ')
-
-    if answer in ['3', '4']:
-        print('One point for Harry')
-        score['harry'] += 1
-    else:
-        print('One point for Taylor')
-        score['taylor'] += 1
-
-
-def question_four():
-    """Function for q4"""
-    q4 = questions_quiz.get('question_four_answers')
-
-    print("What is your favorite color?\n")
-    for index, option in enumerate(q4):
-        index += 1
-        print(f"{index}, {option}")
-
-    answer = input('> ')
-
-    if answer in ['1', '3']:
-        print('One point for Harry')
-        score['harry'] += 1
-    else:
-        print('One point for Taylor')
-        score['taylor'] += 1
+        quiz_data['score']['taylor'] += 1
 
 
 if __name__ == '__main__':
-    print("The celebrity you are is...\n")
+    print("Welcome to the Leah's Celeb Quiz!\n")
 
-    question_one()
-    question_two()
-    question_three()
-    question_four()
+    for index, _ in enumerate(quiz_data['questions']):
+        question_prompt(index)
 
-    if score['harry'] == score['taylor']:
-        print('It was a tie!')
-    elif score['harry'] >= score['taylor']:
-        print('You are Harry Styles!')
+    print("\nThe celebrity you are is...")
+    if quiz_data['score']['harry'] == quiz_data['score']['taylor']:
+        print("It's a tie!")
+    elif quiz_data['score']['harry'] > quiz_data['score']['taylor']:
+        print("Harry Styles!")
     else:
-        print('You are Taylor Swift!')
+        print("Taylor Swift!")
