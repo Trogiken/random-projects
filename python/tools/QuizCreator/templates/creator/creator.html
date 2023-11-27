@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Creator{% endblock %}
+
+<!-- DEBUG This style sheet does not work rn -->
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/creator.css') }}">
+{% endblock %}
+
+{% block content %}
+    <h1>Creator Page</h1>
+    <p>Here you will be able to create flashcards and quizes</p>
+{% endblock %}
