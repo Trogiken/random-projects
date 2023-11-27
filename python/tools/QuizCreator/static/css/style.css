@@ -1,7 +1,8 @@
 /* Reset default styles */
-body, h1, p {
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 /* Global styles */
@@ -28,6 +29,3 @@ p {
   line-height: 1.5;
   margin-bottom: 20px;
 }
-
-/* Add your custom styles below this line */
-

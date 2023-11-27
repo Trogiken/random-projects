@@ -2,6 +2,10 @@
 
 {% block title %}Quiz{% endblock %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/quiz/quiz.css') }}">
+{% endblock %}
+
 {% block content %}
     <h1>Quiz Page</h1>
     <p>Here you will be able to test</p>
