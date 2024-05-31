@@ -7,11 +7,8 @@ import tkinter
 import tkinter.filedialog
 from time import sleep
 
-# TODO: Make the program pull from different paths for different files (mods, resources, textures)
-# TODO: Then have custom file path checks on each of them
-
 PROGRAM_NAME = "Hominum Modpack Updater"
-VERSION = "1.2"
+VERSION = "1.3"
 PATH_URL = r"https://raw.githubusercontent.com/Eclik1/Hominum-Updates/main/path.txt"
 GITHUB_CONTENTS_BASE = r"https://api.github.com/repos/Eclik1/Hominum-Updates/contents"
 
@@ -36,28 +33,37 @@ class CustomTk(tkinter.Tk):
         super().destroy()
 
 
-def get_path() -> str:
-    """Returns a relative path from the PATH_URL"""
+def get_url_dir() -> str:
+    """Returns url of the directory with mods"""
     resp = src.get_request(PATH_URL)
     path = resp.text.split("\n")[0].strip()
-    return path
+    url = f"{GITHUB_CONTENTS_BASE}/{path}"
+
+    return url
 
 
-def get_urls() -> list:
-    """Returns a list of file download urls"""
-    rel_path = get_path()
-    
-    urls = []
-    url = f"{GITHUB_CONTENTS_BASE}/{rel_path}"
-    resp = src.get_request(url)
+def get_filenames() -> list:
+    """Returns a list of mod names"""
+    resp = src.get_request(get_url_dir())
+    names = []
     for file in resp.json():
-        urls.append(file["download_url"])
+        names.append(file["name"])
 
-    return urls
+    return names
+
+
+def get_file_downloads() -> list:
+    """Returns a list of download urls"""
+    resp = src.get_request(get_url_dir())
+    download_urls = []
+    for file in resp.json():
+        download_urls.append(file["download_url"])
+    
+    return download_urls
 
 
 def is_valid_mod_path(path: str) -> bool:
-    """Returns True if the entered path exists and all files in the directory are jars."""
+    """Returns True if the entered path exists and all files in the directory are jars"""
     if not os.path.exists(path):
         return False
 
@@ -110,6 +116,35 @@ def get_path_tk() -> str:
             print("Invalid mod path, please select again.")
 
 
+def sync_mods(mods_path: str, ) -> None:
+    """Syncs mods with the server"""
+    print("\n**** Syncing Mods ****")
+    print("Removing Invalid Mods...")
+    server_mods = get_filenames()
+    invalid_mod_count = 0
+    for file in os.listdir(mods_path):
+        if file not in server_mods:
+            os.remove(os.path.join(mods_path, file))
+            print(f"Removed '{file}'")
+            invalid_mod_count += 1
+    print(f"Removed {invalid_mod_count} invalid mod(s)")
+
+    print("\nDownloading new mods...")
+    total_downloaded = src.download_files(get_file_downloads(), mods_path)
+    print(f"Finished downloading {total_downloaded} mod(s)")
+
+    success = True
+    for file in os.listdir(mods_path):
+        if file not in server_mods:
+            print(f"Warning: '{file}' is not on the server")
+            success = False
+    
+    if success:
+        print("**** Finished Syncing Mods ****")
+    else:
+        print("**** Failed To Sync Mods ****")
+
+
 def main():
     """GUI part of the program"""
     root = CustomTk()
@@ -150,11 +185,11 @@ def main():
     # create update button
     button = tkinter.Button(
         root,
-        text="Update Modpack",
+        text="Sync Modpack",
         font=("Arial", 12),
         height=1,
         width=15,
-        command=lambda: src.download_files(get_urls(), mods_path)
+        command=lambda: sync_mods(mods_path)
     )
     button.pack(pady=1)
     ########################
