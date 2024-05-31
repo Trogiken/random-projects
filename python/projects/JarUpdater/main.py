@@ -7,6 +7,9 @@ import tkinter
 import tkinter.filedialog
 from time import sleep
 
+# TODO: Make the program pull from different paths for different files (mods, resources, textures)
+# TODO: Then have custom file path checks on each of them
+
 PROGRAM_NAME = "Hominum Modpack Updater"
 VERSION = "1.2"
 PATH_URL = r"https://raw.githubusercontent.com/Eclik1/Hominum-Updates/main/path.txt"
