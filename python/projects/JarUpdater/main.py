@@ -66,19 +66,30 @@ def is_valid_mod_path(path: str) -> bool:
 
 def get_mods_path() -> str:
     """Returns the path to the mods folder"""
-    mods_path = os.path.join(
-        os.getenv("USERPROFILE"),
-        "curseforge",
-        "minecraft",
-        "Instances",
+    user_profile = os.getenv("USERPROFILE")
+    base_path = os.path.join(user_profile, "curseforge", "minecraft", "Instances")
+    server_pack_names = [
         "Serverstienpack",
-        "mods"
-    )
+        "Serverstienpack1",
+        "Serverstienpack1.1",
+        "Serverstienpack1.1(fixed)",
+        "Serverstienpack-1.1",
+        "Serverstienpack-1.1(fixed)",
+        "serverstienpack",
+        "serverstienpack1",
+        "serverstienpack1.1",
+        "serverstienpack1.1(fixed)",
+        "serverstienpack-1.1",
+        "serverstienpack-1.1(fixed)",
+    ]
 
-    if not is_valid_mod_path(mods_path):
-        mods_path = ""
+    paths_to_try = [os.path.join(base_path, pack_name, "mods") for pack_name in server_pack_names]
 
-    return mods_path
+    for mods_path in paths_to_try:
+        if is_valid_mod_path(mods_path):
+            return mods_path
+
+    return ""
 
 
 def get_path_tk() -> str:
