@@ -27,6 +27,11 @@ class CustomTk(tkinter.Tk):
         print("Error occurred, check error.txt for more information")
         print("For help send this file to Creme Fraiche on discord")
 
+    def destroy(self):
+        self.quit()
+        self.update()
+        super().destroy()
+
 
 def get_path() -> str:
     """Returns a relative path from the PATH_URL"""
@@ -73,7 +78,7 @@ def get_mods_path() -> str:
     if not is_valid_mod_path(mods_path):
         mods_path = ""
 
-    return "asodifjoiasjdfoijasoidfjojomods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_text"
+    return mods_path
 
 
 def get_path_tk() -> str:
@@ -96,41 +101,37 @@ def main():
     root = CustomTk()
     root.title(PROGRAM_NAME)
 
-    window_width = 400
-    window_height = 150
-    root.geometry(f"{window_width}x{window_height}")
+    WINDOW_WIDTH = 400
+    WINDOW_HEIGHT = 150
+    root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
     root.resizable(False, False)
 
     # Title label
     title = tkinter.Label(root, text=PROGRAM_NAME, font=("Arial", 16))
     title.pack(pady=5)
+    ########################
 
     # Mods path label
     mods_path = get_mods_path()
-    # TODO: Fix the max_len functionality
-    padding = 20
-    max_len = 50
-    mods_path_label = tkinter.Label(root, text=mods_path, font=("Arial", 12), wraplength=window_width - padding, justify="left")
+    PADDING = 20 # padding for the label
+    MAX_LEN = 100 # max length of the path to display
+    mods_path_label = tkinter.Label(root, font=("Arial", 12), wraplength=WINDOW_WIDTH - PADDING, justify="left")
     mods_path_label.pack(pady=5)
     if not mods_path:
         print("Mods folder not found, open it manually\nSee modpack-installation channel for info")
         mods_path_label.config(text="Unkown Mods Path")
         mods_path = get_path_tk()
         if mods_path:
-            mods_path_text = mods_path
-            if len(mods_path_text) >= max_len:
-                mods_path_text = mods_path_text[:-4] + "..."
-            mods_path_label.config(text=mods_path_text)
             print(f"Updated mods path to {mods_path}")
         else:
             print("No valid mods path provided. Exiting...")
             sleep(3)
             return
-    else:
-        mods_path_text = mods_path
-        if len(mods_path_text) >= max_len:
-            mods_path_text = mods_path_text[:-4] + "..."
-            mods_path_label.config(text=mods_path_text)
+    mods_path_text = mods_path
+    if len(mods_path_text) > MAX_LEN:
+        mods_path_text = mods_path_text[:MAX_LEN] + "..."
+    mods_path_label.config(text=mods_path_text)
+    ########################
 
     # create update button
     button = tkinter.Button(
@@ -142,9 +143,12 @@ def main():
         command=lambda: src.download_files(get_urls(), mods_path)
     )
     button.pack(pady=1)
+    ########################
 
+    # create version label
     version_label = tkinter.Label(root, text=f"v{VERSION}", font=("Arial", 10))
     version_label.pack(side="bottom", anchor="se")
+    ########################
 
     # run the mainloop
     root.mainloop()
