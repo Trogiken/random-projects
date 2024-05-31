@@ -73,7 +73,7 @@ def get_mods_path() -> str:
     if not is_valid_mod_path(mods_path):
         mods_path = ""
 
-    return mods_path
+    return "asodifjoiasjdfoijasoidfjojomods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_textmods_path_text"
 
 
 def get_path_tk() -> str:
@@ -99,7 +99,7 @@ def main():
     window_width = 400
     window_height = 150
     root.geometry(f"{window_width}x{window_height}")
-    root.resizable(True, True)
+    root.resizable(False, False)
 
     # Title label
     title = tkinter.Label(root, text=PROGRAM_NAME, font=("Arial", 16))
@@ -107,7 +107,9 @@ def main():
 
     # Mods path label
     mods_path = get_mods_path()
+    # TODO: Fix the max_len functionality
     padding = 20
+    max_len = 50
     mods_path_label = tkinter.Label(root, text=mods_path, font=("Arial", 12), wraplength=window_width - padding, justify="left")
     mods_path_label.pack(pady=5)
     if not mods_path:
@@ -115,12 +117,20 @@ def main():
         mods_path_label.config(text="Unkown Mods Path")
         mods_path = get_path_tk()
         if mods_path:
-            mods_path_label.config(text=mods_path)
+            mods_path_text = mods_path
+            if len(mods_path_text) >= max_len:
+                mods_path_text = mods_path_text[:-4] + "..."
+            mods_path_label.config(text=mods_path_text)
             print(f"Updated mods path to {mods_path}")
         else:
             print("No valid mods path provided. Exiting...")
             sleep(3)
             return
+    else:
+        mods_path_text = mods_path
+        if len(mods_path_text) >= max_len:
+            mods_path_text = mods_path_text[:-4] + "..."
+            mods_path_label.config(text=mods_path_text)
 
     # create update button
     button = tkinter.Button(
