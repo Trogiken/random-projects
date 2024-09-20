@@ -86,8 +86,9 @@ sleep 2s
 sudo apt install -y gobuster
 sudo apt install -y tor
 if [ -n "$(git config --global user.name)" ] && [ -n "$(git config --global user.email)" ]; then
-    git clone https://github.com/danielmiessler/SecLists.git
-    git clone https://github.com/lgandx/Responder.git
+    mkdir ~/packages
+    git clone https://github.com/danielmiessler/SecLists.git ~/packages/SecLists
+    git clone https://github.com/lgandx/Responder.git ~/packages/Responder
 else
     echo "Git is not configured. Skipping cloning repositories."
 fi
